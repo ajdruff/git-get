@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+######################################
+# git ext_name
+#
+#
+# Installation :
+# Add this to the same directory that your git executable is in, and make sure it has executable
+# permissions : i.e.: chmod o+x  git-get
+#
+ # git-same as git clone but without the cloning
+#
+# Usage:
+#
+# @author Andrew Druffner andrew@nomstock.com
+######################################
+
+
+#####################
+#
+# Determine platform
+# http://stackoverflow.com/a/18434831
+#####################
+
+# NOTE: on macOS, this requires GNU findutils,
+# installed using e.g. brew install findutils:
+# https://brew.sh/
+# https://apple.stackexchange.com/a/69332
+case "${OSTYPE}" in
+    darwin*)
+        grep='ggrep'
+        xargs='gxargs'
+        ;;
+    linux-*)
+        grep='grep'
+        xargs='xargs'
+        ;;
+    *)
+        echo 'ERROR'
+        echo "unsupported operating system: ${OSTYPE}"
+        exit 1
+        ;;
+esac
+
+#####################
+#
+# GetOpts
+# http://stackoverflow.com/a/16496491
+#####################
+#usage() { echo "Usage: git splits [-f] [-t] -b <branch_name> <dir1> <dir2>" 1>&2; #exit 1; }
+
+#########################
+# The command line help #
+#########################
+usage() {
+    echo "Usage: git get [option...] <repository> [<directory>]"
+    echo
+    echo "   -b          branch to copy, defaults to master"
+    echo "   -V          Verbose - Show debugging and more informative output"
+    echo "   -v          version"
+    echo "   -h          show help"
+    echo
+    1>&2;exit 1
+}
+
+
+# intialization
+
+v_messages=
+#version=1.0.0
+while getopts ":b:s:t:h" o;do
+    case "${o}" in
+        b)
+            branch="${OPTARG}"
+            v_messages+="-b:branch set to ${branch}\n";
+            ;;
+        s)
+            echo "git-get version $version";
+            exit;
+            ;;
+        t)
+            echo "git-get version $version";
+            exit;
+            ;;
+        h,*)
+            usage
+            exit;
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+exit;
+show_verbose () {
+    if [ ! -z "${VERBOSE}" ]
+    then
+        echo -e "$*"
+    fi
+}
+
+show_errors () {
+ echo -e "$*"
+ exit 1;
+}
+
+#: ${1?"Usage: $0 ARGUMENT"}
+
+#: ${!VERBOSE?"Usage: $0 ARGUMENT"}
+
+if [ -z "${1}" ]; then
+echo " no arguments provided"
+    usage;
+    exit 1;
+else
+repo_path="${1}"
+fi
+
+
+
+re="([^/]+)\.git"
+
+if [[ $repo_path =~ $re ]]; then
+    dir=${BASH_REMATCH[1]}
+else
+     e_messages+="invalid path $repo_path";
+    exit;
+fi
+
+if [ "$2" ]; then
+  dir="${2}"
+else
+  dir=;
+fi
+
+
+
+
+
+#git clone --depth=1 --branch="${branch}" "${repo_path}" "${dir}" && rm -rf ./"${dir}"/.git
+
+v_messages+=="git clone --depth=1 --branch="${branch}" "${repo_path}" "${dir}" && rm -rf ./"${dir}"/.git"
+
+show_verbose "${v_messages}"
+#show_errors "${e_messages}"
+
+exit;
