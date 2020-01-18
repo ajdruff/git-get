@@ -52,16 +52,6 @@ esac
 #########################
 # The command line help #
 #########################
-usage() {
-    echo "Usage: git get [option...] <repository> [<directory>]"
-    echo
-    echo "   -b          branch to copy, defaults to master"
-    echo "   -V          Verbose - Show debugging and more informative output"
-    echo "   -v          version"
-    echo "   -h          show help"
-    echo
-    1>&2;exit 1
-}
 
 
 # intialization
