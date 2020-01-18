@@ -52,23 +52,41 @@ esac
 #########################
 # The command line help #
 #########################
+usage() {
+    echo "Usage: git get [option...] <repository> [<directory>]"
+    echo
+    echo "   -b          branch to copy, defaults to master"
+    echo "   -V          Verbose - Show debugging and more informative output"
+    echo "   -v          version"
+    echo "   -h          show help"
+    echo
+    1>&2;exit 1
+}
 
 
 # intialization
-
+branch=master
+dir=
+repo_path=
+e_messages=
 v_messages=
-#version=1.0.0
-while getopts ":b:s:t:h" o;do
+version=1.0.0
+while getopts "bVvdh" o;do
     case "${o}" in
         b)
+
             branch="${OPTARG}"
             v_messages+="-b:branch set to ${branch}\n";
             ;;
-        s)
-            echo "git-get version $version";
-            exit;
+        V)
+            VERBOSE="TRUE"
+            v_messages+="-V:verbose enabled \n";
             ;;
-        t)
+        d)
+            DRY_RUN="TRUE"
+            v_messages+="-d:dry run enabled \n";
+            ;;
+        v)
             echo "git-get version $version";
             exit;
             ;;
@@ -80,11 +98,30 @@ while getopts ":b:s:t:h" o;do
 done
 shift $((OPTIND-1))
 
-exit;
+
+validate(){
+
+if [ -z "${1}" ]; then
+ e_messages+="you forgot to give me a repo path \n";
+ end;
+else
+repo_path="${1}"
+fi
+
+if [ "$2" ]; then
+  dir="${2}"
+fi
+
+
+
+}
+
 show_verbose () {
     if [ ! -z "${VERBOSE}" ]
     then
         echo -e "$*"
+      #  echo "git clone --depth=1 --branch=${branch} ${repo_path} ${dir}" && echo "rm -rf ./${dir}/.git"
+
     fi
 }
 
@@ -97,40 +134,73 @@ show_errors () {
 
 #: ${!VERBOSE?"Usage: $0 ARGUMENT"}
 
+end(){
+    show_errors "${e_messages}"
+    exit;
+}
+
+
+setRepoPath(){
 if [ -z "${1}" ]; then
-echo " no arguments provided"
-    usage;
-    exit 1;
+ e_messages+="you forgot to give me a repo path \n";
+ end;
 else
 repo_path="${1}"
 fi
+}
 
 
 
-re="([^/]+)\.git"
 
+setDirectory(){
+if [ "${dir}" ]; then
+return
+fi
+
+    re="([^/]+)\.git"
 if [[ $repo_path =~ $re ]]; then
     dir=${BASH_REMATCH[1]}
 else
-     e_messages+="invalid path $repo_path";
-    exit;
+     e_messages+="invalid path $repo_path \n";
+     end;
 fi
 
-if [ "$2" ]; then
-  dir="${2}"
-else
-  dir=;
-fi
+}
+
+
+
+setCmd(){
+cmd="git clone --depth=1 --branch=${branch} ${repo_path} ${dir} && rm -rf ./${dir}/.git"
+v_messages+=${cmd}
+}
+
+cmd(){
+
+    if [ ! -z "${DRY_RUN}" ]
+    then
+
+     echo "${cmd}"
+
+    else
+
+      echo "${cmd}"
+
+    fi
+
+
+
+}
 
 
 
 
 
-#git clone --depth=1 --branch="${branch}" "${repo_path}" "${dir}" && rm -rf ./"${dir}"/.git
+######## MAIN ###########
+validate  $@
+setRepoPath "${1}"
+setDirectory  $@
+setCmd
 
-v_messages+=="git clone --depth=1 --branch="${branch}" "${repo_path}" "${dir}" && rm -rf ./"${dir}"/.git"
-
-show_verbose "${v_messages}"
-#show_errors "${e_messages}"
-
-exit;
+true && show_verbose "${v_messages}"
+cmd
+show_errors "${e_messages}"
