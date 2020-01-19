@@ -8,7 +8,7 @@
 # Add this to the same directory that your git executable is in, and make sure it has executable
 # permissions : i.e.: chmod o+x  git-get
 #
- # git-same as git clone but without the cloning
+# git-same as git clone but without the cloning
 #
 # Usage:
 #
@@ -30,16 +30,16 @@ case "${OSTYPE}" in
     darwin*)
         grep='ggrep'
         xargs='gxargs'
-        ;;
+    ;;
     linux-*)
         grep='grep'
         xargs='xargs'
-        ;;
+    ;;
     *)
         echo 'ERROR'
         echo "unsupported operating system: ${OSTYPE}"
         exit 1
-        ;;
+    ;;
 esac
 
 #####################
@@ -47,7 +47,7 @@ esac
 # GetOpts
 # http://stackoverflow.com/a/16496491
 #####################
-#usage() { echo "Usage: git splits [-f] [-t] -b <branch_name> <dir1> <dir2>" 1>&2; #exit 1; }
+
 
 #########################
 # The command line help #
@@ -55,11 +55,12 @@ esac
 usage() {
     echo "Usage: git get [option...] <repository> [<directory>]"
     echo
-    echo "   -b          Branch  - branch to copy, defaults to master"
-    echo "   -V          Verbose - Shows debugging output"
-    echo "   -d          Dry Run - Downloads repo to a temp directory"
-    echo "   -v          Version - shows version"
-    echo "   -h          Help    - show usage"
+    echo "   -b <branch name>  Branch  - branch to download, defaults to master"
+    echo "   -a [archive type] Archive - zip,tar download as archive, defaults to tar"
+    echo "   -V                Verbose - Shows debugging output"
+    echo "   -d                Dry Run - Downloads repo to a temp directory"
+    echo "   -v                Version - shows version"
+    echo "   -h                Help    - show usage"
     echo
     1>&2;exit 1
 }
@@ -67,74 +68,76 @@ usage() {
 
 
 # intialization
+archive_type=tar
 branch=master
 dir=
 repo_path=
 e_messages=
 v_messages=
 version=1.0.0
-while getopts "bVvdh" o;do
+# colon after the argument means it requires a value assigned to it
+while getopts "b:a:Vdv:h" o;do
     case "${o}" in
         b)
 
             branch="${OPTARG}"
             v_messages+="-b:branch set to ${branch}\n";
-            ;;
+        ;;
+        a)
+            archive="${OPTARG}"
+            v_messages+="-a:archive set to ${archive}\n";
+        ;;
         V)
             VERBOSE="TRUE"
             v_messages+="-V:verbose enabled \n";
-            ;;
+        ;;
         d)
             DRY_RUN="TRUE"
             v_messages+="-d:dry run enabled \n";
-            ;;
+        ;;
         v)
             echo "git-get version $version";
             exit;
-            ;;
+        ;;
         h,*)
             usage
             exit;
-            ;;
+        ;;
     esac
 done
-shift $((OPTIND-1))
+     shift $((OPTIND-1));
 
 
 validate(){
 
-if [ -z "${1}" ]; then
- e_messages+="you forgot to give me a repo path \n";
- end;
-else
-repo_path="${1}"
-fi
+    if [ -z "${1}" ]; then
+        e_messages+="Error:Missing <repository> \n";
+        usage;
+        end;
+    else
+        repo_path="${1}"
+    fi
 
-if [ "$2" ]; then
-  dir="${2}"
-fi
+    if [ "$2" ]; then
+        dir="${2}"
+    fi
 
 }
 
 show_errors () {
- echo -e "$*"
- exit 1;
+    echo -e "$*"
+    exit 1;
 }
 
 show_verbose () {
     if [ ! -z "${VERBOSE}" ]
     then
         echo -e "$*"
-      #  echo "git clone --depth=1 --branch=${branch} ${repo_path} ${dir}" && echo "rm -rf ./${dir}/.git"
 
     fi
 }
 
 
-
-#: ${1?"Usage: $0 ARGUMENT"}
-
-#: ${!VERBOSE?"Usage: $0 ARGUMENT"}
 
 end(){
     show_errors "${e_messages}"
@@ -143,77 +146,89 @@ end(){
 
 
 setRepoPath(){
-if [ -z "${1}" ]; then
- e_messages+="you forgot to give me a repo path \n";
- end;
-else
-repo_path="${1}"
-fi
+    if [ -z "${1}" ]; then
+        e_messages+="Error:Missing <repository> \n";
+        end;
+    else
+        repo_path="${1}"
+        v_messages+="repo_path:${repo_path} \n";
+    fi
 }
 
 
 
 
 setDirectory(){
-if [ "${dir}" ]; then
-return
-fi
+    if [ "${dir}" ]; then
+    v_messages+="dir:${dir} \n";
+        return
+    fi
 
     re="([^/]+)\.git"
     re_no_extension="([^/]+)$"
-if [[ $repo_path =~ $re ]]; then
-    dir=${BASH_REMATCH[1]}
+    if [[ $repo_path =~ $re ]]; then
+        dir=${BASH_REMATCH[1]}
 
-elif [[ $repo_path =~ $re_no_extension ]]; then
-    dir=${BASH_REMATCH[1]}
-else
-     e_messages+="invalid path $repo_path \n";
-     end;
-fi
+        elif [[ $repo_path =~ $re_no_extension ]]; then
+        dir=${BASH_REMATCH[1]}
+    else
+        e_messages+="invalid path $repo_path \n";
+        end;
+    fi
+v_messages+="dir:${dir} \n";
+
 
 }
 
 
 
-
 get(){
 
-local temp="${TMPDIR:-/tmp}"
-local dirNameTarget=$dir
-local dirPathTarget=./$dir;
-local dirDryRunTarget=$temp/$dir
+    local temp="${TMPDIR:-/tmp}"
+    local dirNameTarget=$dir
+    local dirPathTarget="./${dir}";
+    local dirDryRunTarget=$temp/$dir
+    local currentDirectory=$(pwd)
 
 
-
-local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
+    local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
 
 
     if [ ! -z "${DRY_RUN}" ]
     then
 
-echo "dry run..."
-dirPathTarget="${dirDryRunTarget}";
-rm -rf "${dirDryRunTarget}";
+        echo "dry run..."
+        dirPathTarget="${dirDryRunTarget}";
+        rm -rf "${dirDryRunTarget}";
 
-local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
+        local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
 
 
-     echo "git clone ${cmd_options}"
-     echo "git submodule update --init --recursive"
-     echo 'rm -rf ./'"${dir}"'/.git'
+        echo "git clone ${cmd_options}"
+        echo "git submodule update --init --recursive"
+        echo 'rm -rf ./'"${dir}"'/.git'
 
 
 
     fi
 
-if git clone ${cmd_options} ; then
+    if git clone ${cmd_options} ; then
+        if  cd "${dirPathTarget}" ; then
 
-    cd "${dirPathTarget}";
-    git submodule update --init --recursive;
-    rm -rf "${dirPathTarget}"/.git;
+            git submodule update --init --recursive;
 
 
-fi
+            if [ "$currentDirectory" != "$(pwd)" ]; then # be really sure
+                rm -rf ".git";
+                cd - 1>/dev/null
+
+
+            fi
+
+
+        fi
+
+    fi
 
 
 }
@@ -223,9 +238,10 @@ fi
 
 
 ######## MAIN ###########
-validate  $@
+validate  "${@}"
+v_messages+="arguments:${@} \n";
 setRepoPath "${1}"
-setDirectory  $@
+setDirectory   "${@}"
 show_verbose "${v_messages}"
 get
 show_errors "${e_messages}"
