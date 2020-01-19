@@ -64,6 +64,7 @@ usage() {
 }
 
 
+
 # intialization
 branch=master
 dir=
@@ -112,8 +113,11 @@ if [ "$2" ]; then
   dir="${2}"
 fi
 
+}
 
-
+show_errors () {
+ echo -e "$*"
+ exit 1;
 }
 
 show_verbose () {
@@ -125,10 +129,7 @@ show_verbose () {
     fi
 }
 
-show_errors () {
- echo -e "$*"
- exit 1;
-}
+
 
 #: ${1?"Usage: $0 ARGUMENT"}
 
@@ -169,21 +170,24 @@ fi
 
 
 
-setCmd(){
-cmd="git clone --depth=1 --branch=${branch} ${repo_path} ${dir} && rm -rf ./${dir}/.git"
-v_messages+=${cmd}
-}
 
-cmd(){
+get(){
+
+local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dir}"
+
 
     if [ ! -z "${DRY_RUN}" ]
     then
 
-     echo "${cmd}"
+     echo "git clone ${cmd_options}"
+     echo "git submodule update --init --recursive"
+     echo 'rm -rf ./'"${dir}"'/.git'
 
     else
 
-      echo "${cmd}"
+      git clone ${cmd_options} && git submodule update --init --recursive && rm -rf ./'"${dir}"'/.git; #no quotes!
+
+
 
     fi
 
@@ -199,8 +203,6 @@ cmd(){
 validate  $@
 setRepoPath "${1}"
 setDirectory  $@
-setCmd
-
 true && show_verbose "${v_messages}"
-cmd
+get
 show_errors "${e_messages}"
