@@ -55,10 +55,11 @@ esac
 usage() {
     echo "Usage: git get [option...] <repository> [<directory>]"
     echo
-    echo "   -b          branch to copy, defaults to master"
-    echo "   -V          Verbose - Show debugging and more informative output"
-    echo "   -v          version"
-    echo "   -h          show help"
+    echo "   -b          Branch  - branch to copy, defaults to master"
+    echo "   -V          Verbose - Shows debugging output"
+    echo "   -d          Dry Run - Downloads repo to a temp directory"
+    echo "   -v          Version - shows version"
+    echo "   -h          Help    - show usage"
     echo
     1>&2;exit 1
 }
@@ -159,7 +160,11 @@ return
 fi
 
     re="([^/]+)\.git"
+    re_no_extension="([^/]+)$"
 if [[ $repo_path =~ $re ]]; then
+    dir=${BASH_REMATCH[1]}
+
+elif [[ $repo_path =~ $re_no_extension ]]; then
     dir=${BASH_REMATCH[1]}
 else
      e_messages+="invalid path $repo_path \n";
@@ -173,24 +178,42 @@ fi
 
 get(){
 
-local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dir}"
+local temp="${TMPDIR:-/tmp}"
+local dirNameTarget=$dir
+local dirPathTarget=./$dir;
+local dirDryRunTarget=$temp/$dir
+
+
+
+local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
 
 
     if [ ! -z "${DRY_RUN}" ]
     then
 
+echo "dry run..."
+dirPathTarget="${dirDryRunTarget}";
+rm -rf "${dirDryRunTarget}";
+
+local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
+
+
      echo "git clone ${cmd_options}"
      echo "git submodule update --init --recursive"
      echo 'rm -rf ./'"${dir}"'/.git'
-
-    else
-
-      git clone ${cmd_options} && git submodule update --init --recursive && rm -rf ./'"${dir}"'/.git; #no quotes!
 
 
 
     fi
 
+if git clone ${cmd_options} ; then
+
+    cd "${dirPathTarget}";
+    git submodule update --init --recursive;
+    rm -rf "${dirPathTarget}"/.git;
+
+
+fi
 
 
 }
@@ -203,6 +226,6 @@ local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dir}"
 validate  $@
 setRepoPath "${1}"
 setDirectory  $@
-true && show_verbose "${v_messages}"
+show_verbose "${v_messages}"
 get
 show_errors "${e_messages}"
