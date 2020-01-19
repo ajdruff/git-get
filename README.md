@@ -6,22 +6,40 @@ git-get - same as git clone but without the cloning
 
 ## Quick Start
 
-change into the directory containing your repo
+### Download the master branch without the repository
 
-    cd myrepo
+    git get https://github.com/tailwindcss/tailwindcss.git
 
-    git get
+### Download a specific branch
+
+    git get -b next-patch https://github.com/tailwindcss/tailwindcss.git
+
+### Download a release
+
+
+### Download a release's zip file
 
 
 ## Usage
 
-    Usage: git get [option...]
+Usage: git get [option...] <repository> [<directory>]
 
-    -a          shortdescription of a flag
+   -b          Branch  - branch to download, defaults to master
+   -V          Verbose - Shows debugging output
+   -d          Dry Run - Downloads repo to a temp directory
+   -v          Version - shows version
+   -h          Help    - show usage
 
 ## DESCRIPTION
 
 Clones a repo but without the .git directory
+
+When would you want to do this ?
+
+* When you want to pull down a project's files into a current git repo without adding it as a submodule
+* When you want a faster download for a project where you don't need the entire repo history
+* When you want to get the zip archive using a similar command and path as the clone command
+
 
 ## INSTALLATION
 

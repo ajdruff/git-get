@@ -105,7 +105,7 @@ while getopts "b:a:Vdv:h" o;do
         ;;
     esac
 done
-     shift $((OPTIND-1));
+shift $((OPTIND-1));
 
 
 validate(){
@@ -160,7 +160,7 @@ setRepoPath(){
 
 setDirectory(){
     if [ "${dir}" ]; then
-    v_messages+="dir:${dir} \n";
+        v_messages+="dir:${dir} \n";
         return
     fi
 
@@ -175,7 +175,7 @@ setDirectory(){
         e_messages+="invalid path $repo_path \n";
         end;
     fi
-v_messages+="dir:${dir} \n";
+    v_messages+="dir:${dir} \n";
 
 
 }
@@ -219,7 +219,18 @@ get(){
 
 
             if [ "$currentDirectory" != "$(pwd)" ]; then # be really sure
-                rm -rf ".git";
+                #  rm -rf ".git";
+                find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+                if [ "${archive}" == "zip" ]; then
+
+                    tar -zcvf ../this-is-a-test.tar.gz .
+                    #git archive -o latest.zip HEAD
+                    #git archive --prefix=git-1.4.0/ -o git-1.4.0.tar.gz v1.4.0
+
+                fi
+
+
+
                 cd - 1>/dev/null
 
 
@@ -232,6 +243,8 @@ get(){
 
 
 }
+
+
 
 
 
