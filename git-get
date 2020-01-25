@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 ######################################
 # git ext_name
@@ -15,7 +15,6 @@
 # @author Andrew Druffner andrew@nomstock.com
 ######################################
 
-
 #####################
 #
 # Determine platform
@@ -26,19 +25,20 @@
 # installed using e.g. brew install findutils:
 # https://brew.sh/
 # https://apple.stackexchange.com/a/69332
+
 case "${OSTYPE}" in
-    darwin*)
-        grep='ggrep'
-        xargs='gxargs'
+darwin*)
+    grep='ggrep'
+    xargs='gxargs'
     ;;
-    linux-*)
-        grep='grep'
-        xargs='xargs'
+linux-*)
+    grep='grep'
+    xargs='xargs'
     ;;
-    *)
-        echo 'ERROR'
-        echo "unsupported operating system: ${OSTYPE}"
-        exit 1
+*)
+    echo 'ERROR'
+    echo "unsupported operating system: ${OSTYPE}"
+    exit 1
     ;;
 esac
 
@@ -48,213 +48,311 @@ esac
 # http://stackoverflow.com/a/16496491
 #####################
 
-
 #########################
 # The command line help #
 #########################
 usage() {
     echo "Usage: git get [option...] <repository> [<directory>]"
     echo
-    echo "   -b <branch name>  Branch  - branch to download, defaults to master"
-    echo "   -a [archive type] Archive - zip,tar download as archive, defaults to tar"
-    echo "   -V                Verbose - Shows debugging output"
-    echo "   -d                Dry Run - Downloads repo to a temp directory"
+    echo "   -b <BRANCH name>  Branch  - The branch you want to download. defaults to master"
+    echo "   -a [compress type] Archive - Download as a zip or tar archive, defaults to tar"
+    echo "   -x                Export -  When used in combination with -a, abides by export-ignore rules in .gitattributes"
+    echo "   -V                Verbose - Shows verbose output"
+    echo "   -d                Dry Run - Uses system tmp directory for downloads, Ignored when -a is used"
     echo "   -v                Version - shows version"
     echo "   -h                Help    - show usage"
     echo
-    1>&2;exit 1
+    1>&2
+    exit 1
 }
 
-
-
-# intialization
-archive_type=tar
-branch=master
-dir=
-repo_path=
-e_messages=
-v_messages=
+#version
 version=1.0.0
+#defaults
+BRANCH=master
+COMPRESS_TYPE=tar
+ARCHIVE_ON="FALSE"
+VERBOSE_ON="TRUE"
+DRY_RUN_ON="FALSE"
+# intialization
+WORKING_DIRECTORY=$(pwd)
+REPO_PATH=
+E_MSG=
+V_MSG=
 # colon after the argument means it requires a value assigned to it
-while getopts "b:a:Vdv:h" o;do
+while getopts ":c:aVdv:hR:" o; do
     case "${o}" in
-        b)
+    b)
 
-            branch="${OPTARG}"
-            v_messages+="-b:branch set to ${branch}\n";
+        BRANCH="${OPTARG}"
+        V_MSG+="-b:BRANCH set to ${BRANCH}\n"
         ;;
-        a)
-            archive="${OPTARG}"
-            v_messages+="-a:archive set to ${archive}\n";
+    R)
+        if [[ $OPTARG =~ ^[0-9]+$ ]]; then
+            level=$OPTARG
+        else
+            level=1
+        fi
         ;;
-        V)
-            VERBOSE="TRUE"
-            v_messages+="-V:verbose enabled \n";
+    c)
+        COMPRESS_ON="${OPTARG}"
+        COMPRESS_ON="TRUE"
+        COMPRESS_TYPE=
+        V_MSG+="-c:compression set to ${COMPRESS_ON}\n"
         ;;
-        d)
-            DRY_RUN="TRUE"
-            v_messages+="-d:dry run enabled \n";
+    a)
+        ARCHIVE_ON="TRUE"
+        V_MSG+="-a:archive enabled. uses git clone --archive flag which respects .gitattributes settings such as  export-ignore\n"
         ;;
-        v)
-            echo "git-get version $version";
-            exit;
+    V)
+        VERBOSE_ON="TRUE"
+        V_MSG+="-V:verbose enabled \n"
         ;;
-        h,*)
-            usage
-            exit;
+    d)
+        DRY_RUN_ON="TRUE"
+        V_MSG+="-d:dry run enabled \n"
+        ;;
+    v)
+        echo "git-get version $version"
+        exit
+        ;;
+    h,*)
+        usage
+        exit
         ;;
     esac
 done
-shift $((OPTIND-1));
+shift $((OPTIND - 1))
 
+# whether we want git to be removed
+_RMGIT() {
+    return 0
+}
 
-validate(){
+_DRY_RUN_ON() {
+
+    if [ ! -z "${DRY_RUN_ON}" ]; then
+        V_MSG+="dry run detected \n"
+        return 0
+    else
+        V_MSG+="dry run not detected \n"
+        return 1
+    fi
+
+}
+
+_COMPRESS_ON() {
+
+    if [ ! -z "${COMPRESS_ON}" ]; then
+        return 0
+    else
+        return 1
+    fi
+
+}
+
+_ZIP() {
+    if [ "${COMPRESS_ON}" == "zip" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_TAR() {
+    if [ "${COMPRESS_ON}" == "tar" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_RESPECT_ARCHIVE_ON_IGNORE() {
+
+    if [ ! -z "${RESPECT_ARCHIVE_ON_IGNORE}" ]; then
+        return 0
+    else
+        return 1
+    fi
+
+}
+
+if (_COMPRESS_ON); then
+    echo 'compress'+$COMPRESS_ON
+else
+    echo 'dont compress'+$COMPRESS_ON
+fi
+
+exit
+
+validate() {
 
     if [ -z "${1}" ]; then
-        e_messages+="Error:Missing <repository> \n";
-        usage;
-        end;
+        E_MSG+="Error:Missing <repository> \n"
+        usage
+        end
     else
-        repo_path="${1}"
+        REPO_PATH="${1}"
     fi
 
     if [ "$2" ]; then
-        dir="${2}"
+        DEST_DIR_NAME="${2}"
     fi
 
 }
 
-show_errors () {
+show_errors() {
     echo -e "$*"
-    exit 1;
+    exit 1
 }
 
-show_verbose () {
-    if [ ! -z "${VERBOSE}" ]
-    then
+show_verbose() {
+    if [ ! -z "${VERBOSE_ON}" ]; then
         echo -e "$*"
 
     fi
 }
 
-
-
-end(){
-    show_errors "${e_messages}"
-    exit;
+end() {
+    show_errors "${E_MSG}"
+    exit
 }
 
-
-setRepoPath(){
+setRepoPath() {
     if [ -z "${1}" ]; then
-        e_messages+="Error:Missing <repository> \n";
-        end;
+        E_MSG+="Error:Missing <repository> \n"
+        end
     else
-        repo_path="${1}"
-        v_messages+="repo_path:${repo_path} \n";
+        REPO_PATH="${1}"
+        V_MSG+="REPO_PATH:${REPO_PATH} \n"
     fi
 }
 
-
-
-
-setDirectory(){
-    if [ "${dir}" ]; then
-        v_messages+="dir:${dir} \n";
+setDirectory() {
+    if [ "${DEST_DIR_NAME}" ]; then
+        V_MSG+="DEST_DIR_NAME:${DEST_DIR_NAME} \n"
         return
     fi
 
     re="([^/]+)\.git"
     re_no_extension="([^/]+)$"
-    if [[ $repo_path =~ $re ]]; then
-        dir=${BASH_REMATCH[1]}
+    if [[ $REPO_PATH =~ $re ]]; then
+        DEST_DIR_NAME=${BASH_REMATCH[1]}
 
-        elif [[ $repo_path =~ $re_no_extension ]]; then
-        dir=${BASH_REMATCH[1]}
+    elif [[ $REPO_PATH =~ $re_no_extension ]]; then
+        DEST_DIR_NAME=${BASH_REMATCH[1]}
     else
-        e_messages+="invalid path $repo_path \n";
-        end;
+        E_MSG+="invalid path $REPO_PATH \n"
+        end
     fi
-    v_messages+="dir:${dir} \n";
-
+    V_MSG+="DEST_DIR_NAME:${DEST_DIR_NAME} \n"
 
 }
 
+_get() {
 
+    #echo "git clone ${cmd_options}"
 
-get(){
+    return 0
+
+    git clone --no-checkout https://github.com/tailwindcss/tailwindcss.git
+    cd tailwindcss
+    git compress -o latest.zip HEAD
+    unzip ./latest.zip
+    git submodule update --init --recursive
+    find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+
+}
+
+getDestinationDirPath() {
+    local dir_name="${1}"
+    local target="./${DEST_DIR_NAME}"
+    local temp="${TMPDIR:-/tmp}"
+    if (_DRY_RUN_ON); then
+        result=$temp/$dir
+    elif (_COMPRESS_ON); then
+        result=$temp/$dir
+    fi
+    echo ${result}
+
+}
+
+_compressUsingGitBuiltin() {
+
+    # compress respects export-ignore but doesnt get submodules, so we'll fix that
+    git compress -o "${compressName}".tar.gz "${BRANCH}"
+    tar -xzf "${compressName}".tar.gz
+    rm "${compressName}".tar.gz
+
+    git submodule update --init --recursive
+    _RMGIT && find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+
+    ZIP && zip "$currentDirectory"/"${compressName}".zip . 1>/dev/null
+    TAR && tar -zcvf "$currentDirectory"/"${compressName}".tar.gz . --exclude=*.git 1>/dev/null
+
+    cd - 1>/dev/null
+
+}
+
+_compress() {
+    # _compresss to zip or tar but doesn't use git native compress
+
+    #compressName="${1}"`#`
+
+    git checkout "${BRANCH}"
+    git submodule update --init --recursive
+    find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+
+    ZIP && zip "$currentDirectory"/"${compressName}".zip . 1>/dev/null
+    TAR && tar -zcvf "$currentDirectory"/"${compressName}".tar.gz . --exclude=*.git 1>/dev/null
+
+    cd - 1>/dev/null
+
+}
+
+get() {
 
     local temp="${TMPDIR:-/tmp}"
-    local dirNameTarget=$dir
-    local dirPathTarget="./${dir}";
-    local dirDryRunTarget=$temp/$dir
+    local destinationDirPath=$(getDestinationDirPath "${DEST_DIR_NAME}")
     local currentDirectory=$(pwd)
+    local compressName="${DEST_DIR_NAME}"-"${BRANCH}"
 
+    local cmd_options='--depth=1 --BRANCH='"${BRANCH}"' '"${REPO_PATH}"' '"${destinationDirPath}"
 
-    local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
+    (_COMPRESS_ON || _DRY_RUN_ON) && rm -rf "${destinationDirPath}"
 
+    _DRY_RUN_ON && echo "git clone ${cmd_options}"
+    _DRY_RUN_ON && echo "git submodule update --init --recursive"
+    _DRY_RUN_ON && echo "rm -rf ${destinationDirPath}"
 
-    if [ ! -z "${DRY_RUN}" ]
-    then
+    if git clone --no-checkout ${cmd_options}; then #1
+        if cd "${destinationDirPath}"; then         #2
 
-        echo "dry run..."
-        dirPathTarget="${dirDryRunTarget}";
-        rm -rf "${dirDryRunTarget}";
+            git submodule update --init --recursive
 
-        local cmd_options='--depth=1 --branch='"${branch}"' '"${repo_path}"' '"${dirPathTarget}"
+            if [ "$currentDirectory" != "$(pwd)" ]; then #3 for safety
 
-
-        echo "git clone ${cmd_options}"
-        echo "git submodule update --init --recursive"
-        echo 'rm -rf ./'"${dir}"'/.git'
-
-
-
-    fi
-
-    if git clone ${cmd_options} ; then
-        if  cd "${dirPathTarget}" ; then
-
-            git submodule update --init --recursive;
-
-
-            if [ "$currentDirectory" != "$(pwd)" ]; then # be really sure
-                #  rm -rf ".git";
+                # remove .git directory
                 find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
-                if [ "${archive}" == "zip" ]; then
 
-                    tar -zcvf ../this-is-a-test.tar.gz .
-                    #git archive -o latest.zip HEAD
-                    #git archive --prefix=git-1.4.0/ -o git-1.4.0.tar.gz v1.4.0
-
-                fi
-
-
-
-                cd - 1>/dev/null
-
+                _COMPRESS_ON && _compress
+                _ARCHIVE_ONE && _export
 
             fi
 
+            #3
 
-        fi
-
-    fi
-
+        fi #2
+    fi     #1
 
 }
 
-
-
-
-
-
-
 ######## MAIN ###########
-validate  "${@}"
-v_messages+="arguments:${@} \n";
-setRepoPath "${1}"
-setDirectory   "${@}"
-show_verbose "${v_messages}"
-get
-show_errors "${e_messages}"
+#validate "${@}"
+#V_MSG+="arguments:${@} \n"
+#setRepoPath "${1}"
+#setDirectory "${@}"
+#show_verbose "${V_MSG}"
+#get
+#show_errors "${E_MSG}"
+echo 'awesome'

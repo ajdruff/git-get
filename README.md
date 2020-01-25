@@ -22,13 +22,13 @@ git-get - same as git clone but without the cloning
 
 ## Usage
 
-Usage: git get [option...] <repository> [<directory>]
+        Usage: git get [option...] <repository> [<directory>]
 
-   -b          Branch  - branch to download, defaults to master
-   -V          Verbose - Shows debugging output
-   -d          Dry Run - Downloads repo to a temp directory
-   -v          Version - shows version
-   -h          Help    - show usage
+        -b          Branch  - branch to download, defaults to master
+        -V          Verbose - Shows debugging output
+        -d          Dry Run - Downloads repo to a temp directory
+        -v          Version - shows version
+        -h          Help    - show usage
 
 ## DESCRIPTION
 
