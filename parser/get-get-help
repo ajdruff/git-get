@@ -1,0 +1,12 @@
+
+Usage: get-get-help [--branch BRANCH] [--zip] [--tar] [--export] [--verbose] [--dry-run] [--version] [--help] <repository> [<directory>]
+
+Options:
+  -b BRANCH, --branch BRANCH  The branch you want to download. defaults to master [default: master].
+  -z, --zip                   Download as zip [default: off].
+  -t, --tar                   Download as tar.gz [default: off].
+  -x, --export                When used in combination with -z or -t, abides by export-ignore rules in .gitattributes. Defaults to off [default: off].
+  -V, --verbose               Shows verbose output [default: off].
+  -d, --dry-run               Uses system tmp directory for downloads so doesnt clutter current directory. Ignored when used with -a [default: off].
+  -v, --version               Displays current version [default: off].
+  -h, --help                  Prints help.
