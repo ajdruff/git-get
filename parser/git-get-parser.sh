@@ -49,7 +49,7 @@ _arg_verbose=0
 print_help() {
 
 	cat <<EOF
-Usage: help [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
+Usage: git get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
 
 Options:
   -b BRANCH, --branch BRANCH     The branch you want to download. [default: master].
