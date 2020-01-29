@@ -62,6 +62,7 @@ show_verbose() {
     printf "compression  is " && (COMPRESS_ON && echo "on") || echo "off"
     printf "zip is " && (ZIP_ON && echo "on") || echo "off" #alternate
     printf "tar is " && (TAR_ON && echo "on") || echo "off"
+    printf "keep_repo is " && (KEEP_REPO_ON && echo "on") || echo "off"
 
     printf "export is " && (EXPORT_ON = on && echo "on") || echo "off"
     printf "dry_run is " && (DRY_RUN_ON = on && echo "on") || echo "off"
@@ -69,12 +70,14 @@ show_verbose() {
 
     printf "'%s' is %s\\n" 'version' "$_arg_version"
     printf "Value of '%s': %s\\n" 'repository' "$_arg_repository"
-    printf "Value of '%s': %s\\n" 'repository' "$_arg_directory"
+    printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
 
     echo -e "${V_MSG}"
 
 }
-
+show_errors() {
+    echo -e "${E_MSG}"
+}
 getDestinationDirName() {
 
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
@@ -125,7 +128,7 @@ _compressUsingGitBuiltin() {
     rm "${compressName}".tar.gz
 
     git submodule update --init --recursive
-    _RMGIT && find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+    _RMGIT && find . -name .git -type d -exec rm -rf {} \; 2>/dev/null
 
     ZIP && zip "$currentDirectory"/"${compressName}".zip . 1>/dev/null
     TAR && tar -zcvf "$currentDirectory"/"${compressName}".tar.gz . --exclude=*.git 1>/dev/null
@@ -171,7 +174,14 @@ DRY_RUN_ON() {
 
 VERBOSE_ON() {
 
-    test $_arg_verbose = on
+    test $_arg_verbose = 0
+    return $?
+
+}
+
+KEEP_REPO_ON() {
+
+    test $_arg_keep_repo = on
     return $?
 
 }
@@ -202,12 +212,12 @@ init() {
     readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
     readonly REPO_PATH="$(getRepoPath)"
     readonly DEST_DIR_NAME=$(getDestinationDirName "${REPO_PATH}")
-    readonly DEST_DIRPATH=$(getDestinationDirPath "${DEST_DIR_NAME}")
+    readonly DEST_DIR_PATH=$(getDestinationDirPath "${DEST_DIR_NAME}")
     V_MSG+="BRANCH:${BRANCH} \n"
     V_MSG+="COMPRESS_TYPE:${COMPRESS_TYPE} \n"
     V_MSG+="REPO_PATH:${REPO_PATH} \n"
     V_MSG+="DEST_DIR_NAME:${DEST_DIR_NAME} \n"
-    V_MSG+="DEST_DIRPATH:${DEST_DIRPATH} \n"
+    V_MSG+="DEST_DIR_PATH:${DEST_DIR_PATH} \n"
     V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
     V_MSG+="VERSION:${VERSION} \n"
 }
@@ -238,9 +248,10 @@ saferRmdir() {
     *) in_working_directory=false ;;
     esac
 
-    (test $in_temp = true || test $in_working_directory = true) && (test is_root=false) && echo "rm -rf $dir_path"
+    (test $in_temp = true || test $in_working_directory = true) && (test is_root=false) && rm -rf $dir_path
 
 }
+
 _compress() {
 
     # Note the difference between Working Directory and Destination Directory.
@@ -251,36 +262,36 @@ _compress() {
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} file_name"}
     local file_name="${1}"
 
-    cd "${DEST_DIRPATH}" 2>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to change directory to ${DEST_DIRPATH}"
+    cd "${DEST_DIR_PATH}" 2>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to change directory to ${DEST_DIR_PATH}"
 
     [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
 
-    git checkout "${BRANCH}" || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting"
+    # we don't checkout since we will be using git archive which respects export-ignore
+    # we then expand the archive
+    # git checkout "${BRANCH}" || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting"
+
+    git archive -o latest.tar.gz HEAD || die "ERROR: ${FUNCNAME[0]}() git archive failed, exiting..."
+
+    tar -xzvf latest.tar.gz || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() tar expansion failed, exiting..."
 
     git submodule update --init --recursive || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting"
 
-    # remove .git directory
-    find . -name ".git" -type d -exec rm -rf {} \; 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to remove .git directories, exiting"
+    # remove .git directory unless we tell it not to with the -k option
+    KEEP_REPO_ON || find $PWD -name ".git" -type d -exec rm -rf {} \; 2>/dev/null # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
+    KEEP_REPO_ON || [ -d .git ] && die "ERROR: ${FUNCNAME[0]}() Failed to remove .git, exiting"
 
-    ZIP_ON && zip "$WORKING_DIR_PATH"/"${file_name}".zip . 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to zip, exiting"
+    ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip . 1>/dev/null || die "ERROR: ${FUNCNAME[0]}() Failed to zip, exiting")
 
-    TAR_ON && tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz . --exclude=*.git 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to tar, exiting"
+    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz . 1>/dev/null || die "ERROR: ${FUNCNAME[0]}() Failed to tar, exiting")
 
     cd - 1>/dev/null
 
 }
-_get() {
 
-    #echo "git clone ${cmd_options}"
-
-    return 0
-
-    git clone --no-checkout https://github.com/tailwindcss/tailwindcss.git
-    cd tailwindcss
-    git compress -o latest.zip HEAD
-    unzip ./latest.zip
-    git submodule update --init --recursive
-    find . -name ".git" -type d -exec rm -rf {} \; 2>/dev/null
+rmGit() {
+    echo $(pwd)
+    ls -ail | grep .git
+    find . -name '.git' -type d -exec /bin/rm -rf {} \;
 
 }
 
@@ -289,26 +300,13 @@ _export() {
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} file_name"}
     local file_name="${1}"
 
-    cd "${DEST_DIRPATH}" 2>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to change directory to ${DEST_DIRPATH}"
+    cd "${DEST_DIR_PATH}" 2>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to change directory to ${DEST_DIR_PATH}"
 
     [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
 
-    # we don't checkout since we will be using git archive which respects export-ignore
-    # we then expand the archive
-    # git checkout "${BRANCH}" || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting"
+    ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip . 1>/dev/null || die "ERROR: ${FUNCNAME[0]}() Failed to zip, exiting")
 
-    git archive -o latest.tar.gz HEAD || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() git archive failed, exiting..."
-
-    tar -xzvf latest.tar.gz || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() tar expansion failed, exiting..."
-
-    git submodule update --init --recursive || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting"
-
-    # remove .git directory
-    find . -name .git -type d -exec rm -rf {} \; 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to remove .git directories, exiting"
-
-    ZIP_ON && zip "$WORKING_DIR_PATH"/"${file_name}".zip . 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to zip, exiting"
-
-    TAR_ON && tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz . --exclude=*.git 1>/dev/null || [ ! $? ] || die "ERROR: ${FUNCNAME[0]}() Failed to tar, exiting"
+    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz . 1>/dev/null || die "ERROR: ${FUNCNAME[0]}() Failed to tar, exiting")
 
     cd - 1>/dev/null
 
@@ -316,41 +314,38 @@ _export() {
 
 get() {
 
-    local compressName="${DEST_DIR_NAME}"-"${BRANCH}"
+    local file_name="${DEST_DIR_NAME}"-"${BRANCH}"
 
-    local cmd_options='--depth=1 --BRANCH='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIRPATH}"
+    local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
 
     # remove the target directory if compressed or dry_run since its in temp and will block if it already exists
-    (COMPRESS_ON || DRY_RUN_ON) && saferRmdir "${DEST_DIRPATH}"
+    (COMPRESS_ON || DRY_RUN_ON) && saferRmdir "${DEST_DIR_PATH}"
 
-    DRY_RUN_ON || VERBOSE_ON && echo "git clone --no-checkout ${cmd_options} \n"
+    (DRY_RUN_ON || VERBOSE_ON) && echo "git clone --no-checkout ${cmd_options}"
 
-    git clone --no-checkout ${cmd_options} || [ ! $? ] || die "Error: Failed git clone --no-checkout ${cmd_options}"
+    git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "Error: Failed git clone --no-checkout ${cmd_options}"
 
-    COMPRESS_ON && !EXPORT_ON && _compress $compressName # compress ignoring .gitattributes
-    COMPRESS_ON && EXPORT_ON && _export $compressName    # compress respecting .gitattributes
+    COMPRESS_ON && [ ! EXPORT_ON ] && _compress "${file_name}" # compress ignoring .gitattributes
+    COMPRESS_ON && EXPORT_ON && _export "${file_name}"         # compress respecting .gitattributes
 
 }
 
 ######## MAIN ###########
+badf() {
+    return 0
+}
+#tar -czvf license.tar.gz ./LICENSE
+#TAR_ON && badf || die "ERROR: $0 line ${LINENO}, FUNCTION: ${FUNCNAME[0]}() Failed to tar, exiting"
+#exit
+#badf || [ ! $? ] || echo 'failed'
+#echo 'hello' || [ false ] && echo 'failed'
+#  echo $?
 
+#exit
 validate
 init
-_compress
-exit
-saferRmdir '/tmp/test'
 
-saferRmdir '/home/ajdruff/dev/git-get/test'
+(false || VERBOSE_ON) && show_verbose
 
-saferRmdir '/sm'
-
-saferRmdir '/'
-exit
-#saferRmdir '/tmp/test/' || echo 'unsafe delete'
-
-#V_MSG+="arguments:${@} \n"
-#setDirectory "${@}"
-
-(true || VERBOSE_ON) && show_verbose
-#get
-#show_errors "${E_MSG}"
+get
+#show_errors
