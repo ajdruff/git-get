@@ -89,8 +89,12 @@ A few examples using a sample repository.
     -v, --version                  Prints version.
     -h, --help                     Prints help.
 
+### REQUIREMENTS
 
+You must have the following already installed:
 
+* `git`
+* `zip`
 
 ## License
 
