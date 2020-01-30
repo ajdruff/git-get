@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
 
+repo_name=git-get
+temp_dir="${TMPDIR:-/tmp}"
+temp_repo_dir=$(mktemp -d "${temp_dir}"/$repo_name.XXXXXXXXX)
+
 
 clone (){
 
-local repo_name=git-get
+cd "${temp_repo_dir}"
 git clone --no-checkout git@github.com:ajdruff/${repo_name}.git
 
-cd ${repo_name}
+cd "${repo_name}"
 
     # Get new tags from the remote
 git fetch --tags
@@ -20,6 +24,7 @@ git checkout -b "${latest_tag}"
 
 }
 install() {
+
 echo 'installing git-get...'
     local install_dir=$(dirname $(which git))
 
@@ -31,3 +36,5 @@ echo 'done'
 
 clone
 install
+
+rm -rf "${temp_repo_dir}"/"${repo_name}"
