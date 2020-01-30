@@ -272,7 +272,7 @@ _compress() {
     echo_verbose "Checking out $BRANCH..." 2
     ! EXPORT_ON && ( git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
    EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
-   EXPORT_ON && (git archive -o latest.tar.gz HEAD   && tar -xzvf latest.tar.gz  && rm latest.tar.gz  ) || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting..."
+   EXPORT_ON && (git archive -o latest.tar.gz HEAD   && tar -xzvf latest.tar.gz  && rm latest.tar.gz   || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting...")
 
 
 
