@@ -256,7 +256,7 @@ saferRmdir() {
 
 }
 
-_compress() {
+_checkout() {
 
     # Note the difference between Working Directory and Destination Directory.
     # Working directory is where you started from, where you called the script from
@@ -285,9 +285,9 @@ _compress() {
 
     # remove .git directory unless we tell it not to with the -k option
     KEEP_REPO_ON && echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1
-    KEEP_REPO_ON || find $PWD -name ".git" -type d -exec rm -rf {} \; 2>/dev/null # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
+    KEEP_REPO_ON ||  find $PWD -maxdepth 1 -name ".git" -type d -exec rm -rf {} \;  # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
     KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting")
-    echo_verbose "Compressing directories using ${COMPRESS_TYPE}" 2
+    COMPRESS_ON && echo_verbose "Compressing directories using ${COMPRESS_TYPE}" 2
 
     ZIP_ON && echo_verbose "Zip command: zip $WORKING_DIR_PATH/${file_name}.zip $PWD" 3
     ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip $PWD 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
@@ -298,6 +298,7 @@ _compress() {
     cd - 1>/dev/null
 
 }
+
 
 
 echo_verbose() {
@@ -322,7 +323,9 @@ get() {
 
     git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "Error: Failed git clone"
     COMPRESS_ON &&  echo_verbose "Compressing files..." 1
-    COMPRESS_ON && _compress "${file_name}" # compress ignoring .gitattributes
+    _checkout "${file_name}"
+
+
 
    # NOT NEEDED:  COMPRESS_ON && EXPORT_ON && _export "${file_name}" # compress respecting .gitattributes
 
