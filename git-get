@@ -266,13 +266,13 @@ _compress() {
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} file_name"}
     local file_name="${1}"
 
-    cd "${DEST_DIR_PATH}" 2>/dev/null || die "ERROR: ${LINENO} ${FUNCNAME[0]}() Failed to change directory to ${DEST_DIR_PATH}"
+    cd "${DEST_DIR_PATH}" 2>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${DEST_DIR_PATH}"
 
-    [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: ${LINENO} ${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
+    [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
     echo_verbose "Checking out $BRANCH..." 2
-    ! EXPORT_ON && ( git checkout -q "${BRANCH}" || die "ERROR: ${LINENO} ${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
+    ! EXPORT_ON && ( git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
    EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
-   (EXPORT_ON && git archive -o latest.tar.gz HEAD 1>/dev/null  && tar -xzvf latest.tar.gz 1>/dev/null && rm latest.tar.gz  ) || die "ERROR: ${LINENO} ${FUNCNAME[0]}() export failed, exiting..."
+   EXPORT_ON && (git archive -o latest.tar.gz HEAD   && tar -xzvf latest.tar.gz  && rm latest.tar.gz  ) || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting..."
 
 
 
@@ -286,14 +286,14 @@ _compress() {
     # remove .git directory unless we tell it not to with the -k option
     KEEP_REPO_ON && echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1
     KEEP_REPO_ON || find $PWD -name ".git" -type d -exec rm -rf {} \; 2>/dev/null # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
-    KEEP_REPO_ON || ([ -d .git ] && die "ERROR: ${LINENO} ${FUNCNAME[0]}() Failed to remove .git, exiting")
+    KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting")
     echo_verbose "Compressing directories using ${COMPRESS_TYPE}" 2
 
     ZIP_ON && echo_verbose "Zip command: zip $WORKING_DIR_PATH/${file_name}.zip $PWD" 3
-    ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip $PWD 1>/dev/null || die "ERROR: ${LINENO} ${FUNCNAME[0]}() Failed to zip, exiting")
+    ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip $PWD 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
 
     TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${DEST_DIR_PATH}) ${DEST_DIR_NAME}" 3
-    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${DEST_DIR_PATH}) "${DEST_DIR_NAME}" 1>/dev/null || die "ERROR: ${LINENO} ${FUNCNAME[0]}() Failed to tar, exiting")
+    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${DEST_DIR_PATH}) "${DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
 
     cd - 1>/dev/null
 
