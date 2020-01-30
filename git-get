@@ -49,7 +49,7 @@ esac
 #####################
 
 # Argbash Parser
-source ./git-get-parser.sh
+source "$( dirname "${BASH_SOURCE[0]}" )/git-get-parser.sh"
 getRepoPath() {
 
     echo "${_arg_repository}"
