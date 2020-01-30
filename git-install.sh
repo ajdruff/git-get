@@ -38,7 +38,3 @@ clone
 install
 
 rm -rf "${temp_repo_dir}"/"${repo_name}"
-
-
-# delete this script after downloading and executing
-rm -- "$0"
