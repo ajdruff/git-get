@@ -2,8 +2,7 @@
 
 git-get is a git extension that makes it a little easier to download files stored in a remote git repository. Use it when you just want the repo's files and won't be making changes to the code, or will be commiting it to a different repo and dont need to retain the repo's history.
 
-It does the same thing as clone does, by pulling down the files of the specified branch of the repository (master by default)
-
+`git get` also allows you to pull down the repo, or just a branch's working directory, as a zip or tar file that includes all its submodules *and* respects the `export-ignore` rules that appear in .gitattributes. This isn't possible at all with git alone.
 ## INSTALLATION
 
 Install the latest release using:
@@ -26,17 +25,26 @@ Install a specific branch or release
 
     git get https://github.com/tailwindcss/tailwindcss.git
 
-### Get a zipped archive that doesnt include .git folder
+### Get the master branch without the repository as an archive in zipped format
 
     git get -z https://github.com/tailwindcss/tailwindcss.git
 
 > -t can be used to give a tar archive instead
 
-## Why not just use git clone
+
+## Why not just use git clone?
+
+Without `git get`, you can do *almost* do everything that `git get` lets you do but with multiple steps.
 
 * `git get` allows you to add a project's files to your project without having to add it as a submodule or manually deleting its .git folder.
 * `git get`  will automatically include all the submodules needed for the project (without their corresponding git directories by default)
 * `git get`  can easily get a zip or tar of a repo, complete with its submodules. Although the git builtin `git archive` supports zip and tar, it doesnt include a projects submodules.
+
+## Download an archive zip or tar with all submodules
+
+ Get a zipped archive that includes all submodules and follows the [export-ignore rules in a repository.](https://git-scm.com/docs/gitattributes) . There are alternatives, all of which require writing a not-insignificant script. A Google search shows you that this is not solved yet; some suggestions include this old  [stackoverflow question](https://stackoverflow.com/questions/5482544/how-can-i-use-git-archive-to-include-submodules-from-a-bare-repository) and a [scrip](https://ttboj.wordpress.com/2015/07/23/git-archive-with-submodules-and-tar-magic/).
+
+
 
 
 ## Using `git get` vs just `git`
@@ -57,6 +65,10 @@ A few examples using a sample repository.
 
     git get https://github.com/githubtraining/hellogitworld.git
 
+### Get the master branch **with** the repository (no different that `git clone` but gets submodules)
+
+    git get -k https://github.com/githubtraining/hellogitworld.git
+
 ### Get a specific branch
 
     git get -b git-pages https://github.com/githubtraining/hellogitworld.git
@@ -65,7 +77,7 @@ A few examples using a sample repository.
 
     git get -b RELEASE_1.1  https://github.com/githubtraining/hellogitworld.git
 
-### Get a zipped archive
+### Get a zipped archive that includes all submodules
 
     git get -z https://github.com/githubtraining/hellogitworld.git
 
@@ -73,6 +85,13 @@ A few examples using a sample repository.
 
     git get -t https://github.com/githubtraining/hellogitworld.git
 
+### Get a zipped archive that follows the `export-ignore` rules
+
+    git get -zx https://github.com/githubtraining/hellogitworld.git
+
+### Get a zipped archive that follows the `export-ignore` rules and includes the repo
+
+    git get -zxk https://github.com/githubtraining/hellogitworld.git
 
 ## Usage
 
