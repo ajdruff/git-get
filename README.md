@@ -3,6 +3,7 @@
 git-get is a git extension that makes it a little easier to download files stored in a remote git repository. Use it when you just want the repo's files and won't be making changes to the code, or will be commiting it to a different repo and dont need to retain the repo's history.
 
 `git get` also allows you to pull down the repo, or just a branch's working directory, as a zip or tar file that includes all its submodules *and* respects the `export-ignore` rules that appear in .gitattributes. This isn't possible at all with git alone.
+
 ## INSTALLATION
 
 Install the latest release using:
@@ -31,7 +32,6 @@ Install a specific branch or release
 
 > -t can be used to give a tar archive instead
 
-
 ## Why not just use git clone?
 
 Without `git get`, you can do *almost* do everything that `git get` lets you do but with multiple steps.
@@ -44,11 +44,7 @@ Without `git get`, you can do *almost* do everything that `git get` lets you do 
 
  Get a zipped archive that includes all submodules and follows the [export-ignore rules in a repository.](https://git-scm.com/docs/gitattributes) . There are alternatives, all of which require writing a not-insignificant script. A Google search shows you that this is not solved yet; some suggestions include this old  [stackoverflow question](https://stackoverflow.com/questions/5482544/how-can-i-use-git-archive-to-include-submodules-from-a-bare-repository) and a [scrip](https://ttboj.wordpress.com/2015/07/23/git-archive-with-submodules-and-tar-magic/).
 
-
-
-
 ## Using `git get` vs just `git`
-
 
 | What you want to do |      Using just `git`   |  Using `git get` |
 |----------|:-------------:|------:|
@@ -118,7 +114,6 @@ You must have the following already installed:
 ## License
 
 [MIT License](https://github.com/ajdruff/git-get/blob/master/LICENSE)
-
 
 ## AUTHOR
 
