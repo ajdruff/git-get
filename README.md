@@ -4,6 +4,22 @@ git-get is a git extension that makes it a little easier to download files store
 
 It does the same thing as clone does, by pulling down the files of the specified branch of the repository (master by default)
 
+## INSTALLATION
+
+Install the latest release using:
+
+    curl -L https://raw.githubusercontent.com/ajdruff/git-get/master/git-install.sh | bash
+
+**OR**
+
+Install a specific branch or release
+
+    git clone --branch v0.0.1 git@github.com:ajdruff/git-get.git
+    cd git-get
+    sudo chmod +x ./git-get
+    sudo cp ./git-get $(dirname $(which git))/
+    sudo cp  ./parser/git-get-parser.sh $(dirname $(which git))/
+
 ## Quick Start
 
 ### Get the master branch without the repository
@@ -49,8 +65,6 @@ A few examples using a sample repository.
 
     git get -b RELEASE_1.1  https://github.com/githubtraining/hellogitworld.git
 
-
-
 ### Get a zipped archive
 
     git get -z https://github.com/githubtraining/hellogitworld.git
@@ -58,8 +72,6 @@ A few examples using a sample repository.
 ### Get a tarred archive
 
     git get -t https://github.com/githubtraining/hellogitworld.git
-
-
 
 
 ## Usage
@@ -76,14 +88,6 @@ A few examples using a sample repository.
     -V VERBOSE, --verbose VERBOSE  Set verbose output (can be specified multiple times to increase the effect) [default: 0].
     -v, --version                  Prints version.
     -h, --help                     Prints help.
-
-
-
-## INSTALLATION
-
-
-    curl -L https://raw.githubusercontent.com/ajdruff/git-get/master/git-install.sh | bash
-
 
 
 ### REQUIREMENTS
