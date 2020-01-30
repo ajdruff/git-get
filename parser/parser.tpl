@@ -13,8 +13,8 @@ exit 11 #)Created by argbash-init v2.8.1
 # ARG_POSITIONAL_SINGLE([directory],[The local destination path for your downloaded files],null)
 # ARG_DEFAULTS_POS
 # ARG_VERBOSE([V])
-# ARG_VERSION_AUTO([v0.1.1 git-get Copyright 2020 Andrew Druffner])
-# ARG_HELP([Like git clone but without .git],[git get is a git extension that downloads project files without downloading its .git directory])
+# ARG_VERSION([echo 'git get v0.0.1 Copyright 2020 Andrew Druffner'])
+# ARG_HELP([Downloads just the working directory of a git repo],[git get is a git extension that downloads files from a git repo without downloading the .git directory itself])
 # ARGBASH_GO
 # [ <-- needed because of Argbash
 
