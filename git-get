@@ -323,6 +323,11 @@ _git_clone() {
   local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
      VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
 
+     # delete the destination directory if we are doing  a compress, since its in temporary
+    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${DEST_DIR_PATH}"
+
+[[ -d "${DEST_DIR_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${DEST_DIR_PATH}"
+
    git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
 
 
