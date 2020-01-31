@@ -58,7 +58,7 @@ cat<<EOF
 
 git get - Downloads just the working directory of a git repo
 
-Usage: help [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
+Usage: git get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
 
 Options:
   -b BRANCH, --branch BRANCH     The branch you want to download. [default: master].
