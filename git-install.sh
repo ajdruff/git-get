@@ -5,6 +5,7 @@ repo_name=git-get
 temp_dir="${TMPDIR:-/tmp}"
 temp_repo_dir=$(mktemp -d "${temp_dir}"/$repo_name.XXXXXXXXX)
 
+die() { echo "$*" 1>&2 ; exit 1; }
 
 clone (){
 
