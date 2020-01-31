@@ -118,7 +118,7 @@ getRepoPath() {
 }
 
 
-getDestinationDirName() {
+getRepoDestDirName() {
 
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
 
@@ -148,13 +148,13 @@ echo "${result}"
         E_MSG+="invalid path $repo_path \n"
         end
     fi
-    V_MSG+="DEST_DIR_NAME:${result} \n"
+    V_MSG+="REPO_DEST_DIR_NAME:${result} \n"
 
     echo "${result}"
     return 0;
 }
 
-getDestinationDirPath() {
+getRepoDestPath() {
 
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} dir_name"}
 
@@ -186,14 +186,14 @@ init() {
     readonly COMPRESS_TYPE="$(getCompressType)"
     readonly WORKING_DIR_PATH=$(pwd)
     readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
-    readonly REPO_PATH="$(getRepoPath)"
-    readonly DEST_DIR_NAME=$(getDestinationDirName "${REPO_PATH}")
-    readonly DEST_DIR_PATH=$(getDestinationDirPath "${DEST_DIR_NAME}")
+    readonly REPO_SOURCE_PATH="$(getRepoPath)"
+    readonly REPO_DEST_DIR_NAME=$(getRepoDestDirName "${REPO_SOURCE_PATH}")
+    readonly REPO_DEST_PATH=$(getRepoDestPath "${REPO_DEST_DIR_NAME}")
     V_MSG+="BRANCH:${BRANCH} \n"
     V_MSG+="COMPRESS_TYPE:${COMPRESS_TYPE} \n"
-    V_MSG+="REPO_PATH:${REPO_PATH} \n"
-    V_MSG+="DEST_DIR_NAME:${DEST_DIR_NAME} \n"
-    V_MSG+="DEST_DIR_PATH:${DEST_DIR_PATH} \n"
+    V_MSG+="REPO_SOURCE_PATH:${REPO_SOURCE_PATH} \n"
+    V_MSG+="REPO_DEST_DIR_NAME:${REPO_DEST_DIR_NAME} \n"
+    V_MSG+="REPO_DEST_PATH:${REPO_DEST_PATH} \n"
     V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
     V_MSG+="VERSION:${VERSION} \n"
 }
@@ -292,7 +292,7 @@ _checkout() {
 _compress() {
 
 
-    local file_name="${DEST_DIR_NAME}"-"${BRANCH}"
+    local file_name="${REPO_DEST_DIR_NAME}"-"${BRANCH}"
 
     COMPRESS_ON && echo_verbose "Compressing files..." 1
     COMPRESS_ON && echo_verbose "Compressing files  using ${COMPRESS_TYPE}" 2
@@ -300,10 +300,10 @@ _compress() {
     ZIP_ON && echo_verbose "Zip command: zip $WORKING_DIR_PATH/${file_name}.zip $PWD" 3
     ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip $PWD 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
 
-    TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${DEST_DIR_PATH}) ${DEST_DIR_NAME}" 3
-    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${DEST_DIR_PATH}) "${DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
+    TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${REPO_DEST_PATH}) ${REPO_DEST_DIR_NAME}" 3
+    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${REPO_DEST_PATH}) "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
 
-    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${DEST_DIR_PATH}"
+    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
 
 }
 
@@ -320,13 +320,13 @@ _export() {
 _git_clone() {
 
 
-  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
+  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
      VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
 
-     # delete the destination directory if we are doing  a compress, since its in temporary
-    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${DEST_DIR_PATH}"
+     # delete the destination directory if we are doing  a compress, since its a temporary directory
+    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
 
-[[ -d "${DEST_DIR_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${DEST_DIR_PATH}"
+[[ -d "${REPO_DEST_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
    git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
 
@@ -349,8 +349,8 @@ _rm_git() {
 
 _show_download_message() {
 
-    COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo "${REPO_PATH}"...." 0)
-    ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo "${REPO_PATH}"..." 0)
+    COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo "${REPO_SOURCE_PATH}"...." 0)
+    ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo "${REPO_SOURCE_PATH}"..." 0)
     echo_verbose "Cloning repository..." 1
 
 }
@@ -373,7 +373,7 @@ get() {
 
     _git_clone
 
-    cd "${DEST_DIR_PATH}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${DEST_DIR_PATH}"
+    cd "${REPO_DEST_PATH}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${REPO_DEST_PATH}"
 
     _checkout
 
