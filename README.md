@@ -16,7 +16,8 @@ Install the latest release (includes pre-releases)
 
 Install a specific branch or release
 
-    git clone https://github.com/ajdruff/git-get.git #or  git clone --branch v0.0.1-pre-release  https://github.com/ajdruff/git-get.git
+    git clone https://github.com/ajdruff/git-get.git
+    #git clone --branch v0.0.1-pre-release  https://github.com/ajdruff/git-get.git  # for a specific branch or release
     cd git-get
     sudo chmod +x ./git-get
     sudo cp ./git-get $(dirname $(which git))/
