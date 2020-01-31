@@ -37,7 +37,7 @@ Install a specific branch or release
 
 ## Why not just use git clone?
 
-Without `git get`, you can do *almost* do everything that `git get` lets you do but with multiple steps.
+Using just git, you can do *almost* everything that `git get` lets you do, but you'll need to do it in multiple steps.
 
 * `git get` allows you to add a project's files to your project without having to add it as a submodule or manually deleting its .git folder.
 * `git get`  will automatically include all the submodules needed for the project (without their corresponding git directories by default)
@@ -50,8 +50,6 @@ Without `git get`, you can do *almost* do everything that `git get` lets you do 
  To do that, simply pass the -z ( for zip ) and -x ( for export rules )
 
     git get -zx https://github.com/githubtraining/hellogitworld.git
-
-
 
  There are alternatives, all of which require writing a not-insignificant script. A Google search shows you that this is not solved yet; some suggestions include this old  [stackoverflow question](https://stackoverflow.com/questions/5482544/how-can-i-use-git-archive-to-include-submodules-from-a-bare-repository) and a [script](https://ttboj.wordpress.com/2015/07/23/git-archive-with-submodules-and-tar-magic/).
 
