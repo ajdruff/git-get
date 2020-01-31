@@ -57,7 +57,7 @@ Using just git, you can do *almost* everything that `git get` lets you do, but y
 
 | What you want to do |      Using just `git`   |  Using `git get` |
 |----------|:-------------:|------:|
-| download all files in master except the .git directory | git get https://path/to/repo.git ;cd repo; rm -rf .git|git get  https://path/to/repo.git
+| download all files in master except the .git directory | git clone  https://path/to/repo.git ;cd repo; rm -rf .git|git get  https://path/to/repo.git
 | download all files except .git directory  as an archive in tar.gz format | git clone https://path/to/repo.git; cd repo;  git archive -o latest.tar.gz HEAD |  git get -t https://path/to/repo.git
 | download all files except .git directory as an archive in zip format | git clone https://path/to/repo.git; cd repo;  git archive -o latest.zip HEAD |  git get -z https://path/to/repo.git
 | clone a repository| git clone https://path/to/repo.git | git get -k https://path/to/repo.git|
