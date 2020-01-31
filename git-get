@@ -1,22 +1,15 @@
 #!/bin/bash
 
 ######################################
-# git ext_name
+# git-get
 #
-#
-# Installation :
-# Add this to the same directory that your git executable is in, and make sure it has executable
-# permissions : i.e.: chmod o+x  git-get
-#
-# git-same as git clone but without the cloning
-#
-# Usage:
+# https://github.com/ajdruff/git-get
 #
 # @author Andrew Druffner andrew@nomstock.com
 ######################################
 
 #####################
-#
+# Credits
 # Determine platform
 # http://stackoverflow.com/a/18434831
 #####################
