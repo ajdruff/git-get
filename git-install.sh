@@ -9,7 +9,7 @@ temp_repo_dir=$(mktemp -d "${temp_dir}"/$repo_name.XXXXXXXXX)
 clone (){
 
 cd "${temp_repo_dir}"
-git clone --no-checkout https://github.com/ajdruff/${repo_name}.git || die ('git-get: something went wrong trying to download installation files. Check your connection and try again')
+git clone --no-checkout https://github.com/ajdruff/${repo_name}.git || die "git-get: something went wrong trying to download installation files. Check your connection and try again"
 
 
 
