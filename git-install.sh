@@ -35,10 +35,15 @@ echo 'installing git-get...'
     sudo install ./git-get "${install_dir}"/
     sudo install ./parser/git-get-parser.sh "${install_dir}"/
 
-echo 'done'
+
+
 }
 
 clone
 install
 
+
 rm -rf "${temp_repo_dir}"/"${repo_name}"
+
+(git get -h && git get -v && echo 'git get installed!') || die "git-get installation failed"
+
