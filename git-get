@@ -9,9 +9,11 @@
 ######################################
 
 #####################
-# Credits
+# Credits / libraries used
 # Determine platform
 # http://stackoverflow.com/a/18434831
+# Argbash
+# https://argbash.readthedocs.io/en/stable/index.html
 #####################
 
 # NOTE: on macOS, this requires GNU findutils,
@@ -35,13 +37,9 @@ linux-*)
     ;;
 esac
 
-#####################
-#
-# GetOpts
-# http://stackoverflow.com/a/16496491
-#####################
 
-# Argbash Parser
+# Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
+# See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
 source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
 
