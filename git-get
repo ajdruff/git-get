@@ -177,9 +177,20 @@ init() {
     readonly COMPRESS_TYPE="$(getCompressType)"
     readonly WORKING_DIR_PATH=$(pwd)
     readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
+
+
+    # Note the difference between REPO_DEST_PATH and  WORKING_DIR_PATH.
+    # WORKING_DIR_PATH, Working Directory, is where you started from, where you called the script from
+    # REPO_DEST_PATH, Destination directory, is where the repo will be downloaded.
+    # REPO_DEST_PATH, will be the in the systems tmp directory  during dry run and compress.
+    # WORKING_DIR_PATH will get the uncompressed downloaded files and any compressed downloads
+
     readonly REPO_SOURCE_PATH="$(getRepoSourcePath)"
     readonly REPO_DEST_DIR_NAME=$(getRepoDestDirName "${REPO_SOURCE_PATH}")
     readonly REPO_DEST_PATH=$(getRepoDestPath "${REPO_DEST_DIR_NAME}")
+
+
+
     V_MSG+="BRANCH:${BRANCH} \n"
     V_MSG+="COMPRESS_TYPE:${COMPRESS_TYPE} \n"
     V_MSG+="REPO_SOURCE_PATH:${REPO_SOURCE_PATH} \n"
@@ -187,6 +198,9 @@ init() {
     V_MSG+="REPO_DEST_PATH:${REPO_DEST_PATH} \n"
     V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
     V_MSG+="VERSION:${VERSION} \n"
+
+
+
 }
 
 
@@ -228,7 +242,7 @@ show_errors() {
 
 
 show_verbose() {
-    #  _COMPRESS && echo 'compress is on'
+
 
     if [ $_arg_verbose -le 2 ]; then
         return
@@ -268,11 +282,7 @@ validate() {
 
 _checkout() {
 
-    # Note the difference between Working Directory and Destination Directory.
-    # Working directory is where you started from, where you called the script from
-    # Destination directorys is where you download the repo files.
-    # Destination directory will be tmp during dry run and compress.
-    # Working directory is where we want to place the compressed archives
+
 
     echo_verbose "Checking out $BRANCH..." 2
     ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
@@ -358,7 +368,7 @@ _update_submodules() {
 
 get() {
 
-    # remove the target directory if compressed or dry_run since its in temp and will block if it already exists
+
 
     _show_download_message
 
@@ -377,7 +387,7 @@ get() {
 
     cd - 1>/dev/null
 
-    # NOT NEEDED:  COMPRESS_ON && EXPORT_ON && _export "${file_name}" # compress respecting .gitattributes
+
 
 }
 
