@@ -50,86 +50,7 @@ esac
 
 # Argbash Parser
 source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
-getRepoPath() {
 
-    echo "${_arg_repository}"
-
-}
-
-show_verbose() {
-    #  _COMPRESS && echo 'compress is on'
-
-    if [ $_arg_verbose -le 2 ]; then
-        return
-
-    fi
-
-    printf "compression  is " && (COMPRESS_ON && echo "on") || echo "off"
-    printf "zip is " && (ZIP_ON && echo "on") || echo "off" #alternate
-    printf "tar is " && (TAR_ON && echo "on") || echo "off"
-    printf "keep_repo is " && (KEEP_REPO_ON && echo "on") || echo "off"
-
-    printf "export is " && (EXPORT_ON = on && echo "on") || echo "off"
-    printf "dry_run is " && (DRY_RUN_ON = on && echo "on") || echo "off"
-    printf "verbose is " && (VERBOSE_ON && echo "on") || echo "off"
-
-    printf "'%s' is %s\\n" 'version' "$_arg_version"
-    printf "Value of '%s': %s\\n" 'repository' "$_arg_repository"
-    printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
-
-    echo -e "${V_MSG}"
-
-}
-show_errors() {
-    echo -e "${E_MSG}"
-}
-getDestinationDirName() {
-
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
-
-
-
-    # first check if a directory name was included as a positional paramater, if so, use return it.
-    if [  "${_arg_directory}" != null ]; then
-result="${_arg_directory}"
-
-echo "${result}"
-
-        return 0
-    fi
-
-
-    #if not explicitly set, derive it from the repo path
-    local repo_path="${1}"
-    local result
-    local re="([^/]+)\.git"
-    local re_no_extension="([^/]+)$"
-    if [[ $repo_path =~ $re ]]; then
-        result=${BASH_REMATCH[1]}
-
-    elif [[ $repo_path =~ $re_no_extension ]]; then
-        result=${BASH_REMATCH[1]}
-    else
-        E_MSG+="invalid path $repo_path \n"
-        end
-    fi
-    V_MSG+="DEST_DIR_NAME:${result} \n"
-
-    echo "${result}"
-    return 0;
-}
-
-getDestinationDirPath() {
-
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} dir_name"}
-
-    local dir_name="${1}"
-    local result="${WORKING_DIR_PATH}/${dir_name}"
-    (DRY_RUN_ON || COMPRESS_ON) && result=$TEMP_DIR_PATH/$dir_name
-
-    echo ${result}
-
-}
 
 COMPRESS_ON() {
 
@@ -179,6 +100,73 @@ KEEP_REPO_ON() {
 
 }
 
+
+
+
+echo_verbose() {
+
+    (($2 <= $_arg_verbose)) && echo "${1}"
+
+}
+
+
+
+getRepoPath() {
+
+    echo "${_arg_repository}"
+
+}
+
+
+getDestinationDirName() {
+
+    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
+
+
+
+    # first check if a directory name was included as a positional paramater, if so, use return it.
+    if [  "${_arg_directory}" != null ]; then
+result="${_arg_directory}"
+
+echo "${result}"
+
+        return 0
+    fi
+
+
+    #if not explicitly set, derive it from the repo path
+    local repo_path="${1}"
+    local result
+    local re="([^/]+)\.git"
+    local re_no_extension="([^/]+)$"
+    if [[ $repo_path =~ $re ]]; then
+        result=${BASH_REMATCH[1]}
+
+    elif [[ $repo_path =~ $re_no_extension ]]; then
+        result=${BASH_REMATCH[1]}
+    else
+        E_MSG+="invalid path $repo_path \n"
+        end
+    fi
+    V_MSG+="DEST_DIR_NAME:${result} \n"
+
+    echo "${result}"
+    return 0;
+}
+
+getDestinationDirPath() {
+
+    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} dir_name"}
+
+    local dir_name="${1}"
+    local result="${WORKING_DIR_PATH}/${dir_name}"
+    (DRY_RUN_ON || COMPRESS_ON) && result=$TEMP_DIR_PATH/$dir_name
+
+    echo ${result}
+
+}
+
+
 getCompressType() {
 
     ZIP_ON && echo 'zip'
@@ -186,13 +174,8 @@ getCompressType() {
     (! ZIP_ON && ! TAR_ON) && echo null
 
 }
-validate() {
-    # initial validation is done by the argbash parser.
-    # Here we add our own rules to ensure user is warned that their options may not make sense
-    TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again'
-    (! TAR_ON && ! ZIP_ON) && EXPORT_ON && die "If you want to export, you need to specify the --zip,-z or --tar,-t option to provide the compression type. Please try again"
 
-}
+
 
 init() {
     # intialization
@@ -214,6 +197,8 @@ init() {
     V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
     V_MSG+="VERSION:${VERSION} \n"
 }
+
+
 
 saferRmdir() {
 
@@ -245,6 +230,51 @@ saferRmdir() {
 
 }
 
+
+show_errors() {
+    echo -e "${E_MSG}"
+}
+
+
+show_verbose() {
+    #  _COMPRESS && echo 'compress is on'
+
+    if [ $_arg_verbose -le 2 ]; then
+        return
+
+    fi
+
+    printf "compression  is " && (COMPRESS_ON && echo "on") || echo "off"
+    printf "zip is " && (ZIP_ON && echo "on") || echo "off" #alternate
+    printf "tar is " && (TAR_ON && echo "on") || echo "off"
+    printf "keep_repo is " && (KEEP_REPO_ON && echo "on") || echo "off"
+
+    printf "export is " && (EXPORT_ON = on && echo "on") || echo "off"
+    printf "dry_run is " && (DRY_RUN_ON = on && echo "on") || echo "off"
+    printf "verbose is " && (VERBOSE_ON && echo "on") || echo "off"
+
+    printf "'%s' is %s\\n" 'version' "$_arg_version"
+    printf "Value of '%s': %s\\n" 'repository' "$_arg_repository"
+    printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
+
+    echo -e "${V_MSG}"
+
+}
+
+
+
+validate() {
+    # initial validation is done by the argbash parser.
+    # Here we add our own rules to ensure user is warned that their options may not make sense
+    TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again'
+    (! TAR_ON && ! ZIP_ON) && EXPORT_ON && die "If you want to export, you need to specify the --zip,-z or --tar,-t option to provide the compression type. Please try again"
+
+}
+
+
+
+
+
 _checkout() {
 
     # Note the difference between Working Directory and Destination Directory.
@@ -257,6 +287,7 @@ _checkout() {
     ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
 
 }
+
 
 _compress() {
 
@@ -276,6 +307,8 @@ _compress() {
 
 }
 
+
+
 _export() {
 
     EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
@@ -283,11 +316,15 @@ _export() {
 
 }
 
-_update_submodules() {
 
-    echo_verbose "Updating submodules..." 2
+_git_clone() {
 
-    git submodule update -q --init --recursive || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting"
+
+  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
+     VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
+
+   git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
 
 }
 
@@ -304,11 +341,6 @@ _rm_git() {
 
 }
 
-echo_verbose() {
-
-    (($2 <= $_arg_verbose)) && echo "${1}"
-
-}
 
 _show_download_message() {
 
@@ -318,16 +350,15 @@ _show_download_message() {
 
 }
 
-_git_clone() {
+_update_submodules() {
 
- 
-  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
-     VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
+    echo_verbose "Updating submodules..." 2
 
-   git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
-
+    git submodule update -q --init --recursive || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting"
 
 }
+
+
 
 get() {
 
