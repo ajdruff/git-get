@@ -111,7 +111,7 @@ echo_verbose() {
 
 
 
-getRepoPath() {
+getRepoSourcePath() {
 
     echo "${_arg_repository}"
 
@@ -186,7 +186,7 @@ init() {
     readonly COMPRESS_TYPE="$(getCompressType)"
     readonly WORKING_DIR_PATH=$(pwd)
     readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
-    readonly REPO_SOURCE_PATH="$(getRepoPath)"
+    readonly REPO_SOURCE_PATH="$(getRepoSourcePath)"
     readonly REPO_DEST_DIR_NAME=$(getRepoDestDirName "${REPO_SOURCE_PATH}")
     readonly REPO_DEST_PATH=$(getRepoDestPath "${REPO_DEST_DIR_NAME}")
     V_MSG+="BRANCH:${BRANCH} \n"
