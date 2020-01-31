@@ -87,12 +87,17 @@ getDestinationDirName() {
 
     : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
 
+
+
     # first check if a directory name was included as a positional paramater, if so, use return it.
-    if [ -v "${_arg_directory}" ]; then
-        result= "${_arg_directory}"
-        echo "${result}"
-        return
+    if [  "${_arg_directory}" != null ]; then
+result="${_arg_directory}"
+
+echo "${result}"
+
+        return 0
     fi
+
 
     #if not explicitly set, derive it from the repo path
     local repo_path="${1}"
@@ -111,6 +116,7 @@ getDestinationDirName() {
     V_MSG+="DEST_DIR_NAME:${result} \n"
 
     echo "${result}"
+    return 0;
 }
 
 getDestinationDirPath() {
@@ -253,7 +259,7 @@ _checkout() {
 }
 
 _compress() {
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} file_name"}
+
 
     local file_name="${DEST_DIR_NAME}"-"${BRANCH}"
 
@@ -304,7 +310,7 @@ echo_verbose() {
 
 }
 
-show_download_message() {
+_show_download_message() {
 
     COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo "${REPO_PATH}"...." 0)
     ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo "${REPO_PATH}"..." 0)
@@ -314,10 +320,12 @@ show_download_message() {
 
 _git_clone() {
 
-    local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
+ 
+  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_PATH}"' '"${DEST_DIR_PATH}"
+     VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
 
-    VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
-    git clone -q --no-checkout "${cmd_options}" 1>/dev/null || die "Error: Failed git clone"
+   git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
 
 }
 
@@ -325,7 +333,7 @@ get() {
 
     # remove the target directory if compressed or dry_run since its in temp and will block if it already exists
 
-    show_downloading_message
+    _show_download_message
 
     _git_clone
 
@@ -349,7 +357,11 @@ get() {
 ######## MAIN ###########
 
 validate
+
 init
+show_verbose
+
+#die ("DIE! ${LINENO}")
 get
 show_verbose
 
