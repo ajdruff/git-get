@@ -125,23 +125,6 @@ getDestinationDirPath() {
 
 }
 
-_compressUsingGitBuiltin() {
-
-    # compress respects export-ignore but doesnt get submodules, so we'll fix that
-    git compress -o "${compressName}".tar.gz "${BRANCH}"
-    tar -xzf "${compressName}".tar.gz
-    rm "${compressName}".tar.gz
-
-    git submodule update --init --recursive
-    _RMGIT && find . -name .git -type d -exec rm -rf {} \; 2>/dev/null
-
-    ZIP && zip "$currentDirectory"/"${compressName}".zip . 1>/dev/null
-    TAR && tar -zcvf "$currentDirectory"/"${compressName}".tar.gz . --exclude=*.git 1>/dev/null
-
-    cd - 1>/dev/null
-
-}
-
 COMPRESS_ON() {
 
     test $_arg_zip = on || test $_arg_tar = on
