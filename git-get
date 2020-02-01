@@ -154,9 +154,9 @@ getRepoDestPath() {
 
     local dir_name="${1}"
     local result="${WORKING_DIR_PATH}/${dir_name}"
-
+    local new_dirname=
 # we randomize the temp directory in case it doesnt get deleted which leads to failure on a later run
-local temp_repo_dir=$(mktemp -d "${TEMP_DIR_PATH}"/$repo_name.XXXXXXXXX)
+local temp_repo_dir=$(mktemp -u "${TEMP_DIR_PATH}"/"${dir_name}".XXXXXXXXX)
 
 
     (DRY_RUN_ON || COMPRESS_ON) && result="${temp_repo_dir}"
@@ -181,10 +181,11 @@ init() {
     E_MSG=
     V_MSG=
     VERSION="${_arg_version}"
+        readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
     readonly BRANCH="${_arg_branch}"
     readonly COMPRESS_TYPE="$(getCompressType)"
     readonly WORKING_DIR_PATH=$(pwd)
-    readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
+
 
 
     # Note the difference between REPO_DEST_PATH and  WORKING_DIR_PATH.
@@ -312,7 +313,8 @@ _compress() {
     TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${REPO_DEST_PATH}) ${REPO_DEST_DIR_NAME}" 3
     TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${REPO_DEST_PATH}) "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
 
-    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
+   # delete temporary directory
+   (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
 
 }
 
