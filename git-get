@@ -35,7 +35,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://apple.stackexchange.com/a/69332
 
 #ref:https://sipb.mit.edu/doc/safe-shell/
-set -euf -o pipefail
+#set -euf -o pipefail
 
 platform_check(){
 case "${OSTYPE}" in
@@ -83,7 +83,7 @@ TAR_ON() {
 
 EXPORT_ON() {
 
-    test "$_arg_export "= on
+    test "$_arg_export" = on
     return $?
 
 }
@@ -377,13 +377,17 @@ _export() {
 _git_clone() {
 
 
-  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
-     VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
+ # local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
+
+  local cmd="git clone -q --no-checkout --depth=1 --branch=$BRANCH $REPO_SOURCE_PATH $REPO_DEST_PATH"
+     VERBOSE_ON && echo_verbose "$cmd" 3
 
 
 [[ -d "${REPO_DEST_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
-   git clone -q --no-checkout "$cmd_options" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
+git clone -q --no-checkout --depth=1 --branch="$BRANCH" "$REPO_SOURCE_PATH" "$REPO_DEST_PATH" ||  die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
 
 
 }
@@ -439,25 +443,24 @@ get() {
     _rm_git
     _compress
 
-    cd - 1>/dev/null
+    cd - 1>/dev/null || return
 
 
 
 }
 
 ######## MAIN ###########
-#file_name=myfile
-#WORKING_DIR_PATH=/this/is/a/path
-# echo_verbose "Zip command: zip -r - ../$(basename "$PWD")  > $WORKING_DIR_PATH/${file_name}.zip" 3
-# exit;
+
 platform_check
 
 validate
-
 init
 
+show_verbose
 
-#die ("DIE! ${LINENO}")
+
+
+
 get
 
 show_verbose
