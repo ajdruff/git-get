@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#shellcheck disable=SC1090
-#shellcheck source=./git-get-parser.sh
+
 
 ######################################
 # git-get
@@ -21,13 +20,13 @@
 ##### SHELLCHECK ###########
 # disable checking of parser script
 #shellcheck disable=SC1090
-#shellcheck source=./git-get-parser.sh
 
 
+##### ARGBASH ###########
 # Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
 # See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
 
-#source ./git-get-parser.sh # uncomment when using shellcheck
+#source ./git-get-parser.sh # uncomment when using SHELLCHECK
 source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
 
@@ -39,7 +38,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://apple.stackexchange.com/a/69332
 
 #ref:https://sipb.mit.edu/doc/safe-shell/
-#set -euf -o pipefail  # this makes script silently fail.
+#set -euf -o pipefail  # TODO: fix set -e causes script to  silently fail
 set -uf -o pipefail
 
 
@@ -141,14 +140,7 @@ getRepoSourcePath() {
 
 getRepoDestDirName() {
 
-# default to working directory.
-# if compressed or dry run, use temporary directory
 
-  #  : "${1? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0]} repo_path"}
-  #: "${2? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0] repo_path} "
-  #: "${1? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0]} repo_path"}
-
- # : ${1? ERROR Function: "${FUNCNAME[0]}"() Usage: "${FUNCNAME[0]} repo_path"}
 : "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} repo_path}"
 
     # first check if a directory name was included as a positional paramater, if so, use return it.
@@ -359,8 +351,6 @@ _compress() {
 
         tar -zcvf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting"
 
-#zip -qr - "../$(basename "$PWD")"  > "$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting"
-
 
 
         )
@@ -389,7 +379,7 @@ _export() {
 _git_clone() {
 
 
- # local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
+
 
   local cmd="git clone -q --no-checkout --depth=1 --branch=$BRANCH $REPO_SOURCE_PATH $REPO_DEST_PATH"
      VERBOSE_ON && echo_verbose "$cmd" 3
