@@ -59,7 +59,7 @@ echo ''| "${xargs}" echo | "${grep}" 't'
 
 COMPRESS_ON() {
 
-    test "{$_arg_zip}" = on || test "$_arg_tar" = on
+    test "$_arg_zip" = on || test "$_arg_tar" = on
     return $?
 
 }
@@ -73,7 +73,7 @@ ZIP_ON() {
 
 TAR_ON() {
 
-    test $_arg_tar = on
+    test "$_arg_tar" = on
     return $?
 
 }
