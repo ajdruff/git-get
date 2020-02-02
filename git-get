@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 ######################################
 # git-get
 #
@@ -14,6 +16,9 @@
 # http://stackoverflow.com/a/18434831
 # Argbash
 # https://argbash.readthedocs.io/en/stable/index.html
+
+##### SHELLCHECK ###########
+ #shellcheck disable=SC1090
 
 
 # Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
@@ -45,6 +50,10 @@ linux-*)
     exit 1
     ;;
 esac
+
+#make shellcheck is happy
+echo ''| "${xargs}" echo | "${grep}" 't'
+
 }
 
 
