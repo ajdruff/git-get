@@ -45,14 +45,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
 COMPRESS_ON() {
 
-    test $_arg_zip = on || test $_arg_tar = on
+    test "{$_arg_zip}" = on || test $_arg_tar = on
     return $?
 
 }
 
 ZIP_ON() {
 
-    test $_arg_zip = on
+    test "$_arg_zip" = on
     return $?
 
 }
