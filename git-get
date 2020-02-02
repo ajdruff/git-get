@@ -156,10 +156,10 @@ getRepoDestPath() {
     local result="${WORKING_DIR_PATH}/${dir_name}"
     local new_dirname=
 # we randomize the temp directory in case it doesnt get deleted which leads to failure on a later run
-local temp_repo_dir=$(mktemp -u "${TEMP_DIR_PATH}"/"${dir_name}".XXXXXXXXX)
+local temp_repo_dir=$(mktemp -d "${TEMP_DIR_PATH}"/XXXXXXXXX)
 
 
-    (DRY_RUN_ON || COMPRESS_ON) && result="${temp_repo_dir}"
+    (DRY_RUN_ON || COMPRESS_ON) && result="${temp_repo_dir}"/"${dir_name}"
 
     echo ${result}
 
@@ -292,7 +292,6 @@ validate() {
 _checkout() {
 
 
-
     echo_verbose "Checking out $BRANCH..." 2
     ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
 
@@ -307,8 +306,13 @@ _compress() {
     COMPRESS_ON && echo_verbose "Compressing files..." 1
     COMPRESS_ON && echo_verbose "Compressing files  using ${COMPRESS_TYPE}" 2
 
-    ZIP_ON && echo_verbose "Zip command: zip $WORKING_DIR_PATH/${file_name}.zip $PWD" 3
-    ZIP_ON && (zip "$WORKING_DIR_PATH"/"${file_name}".zip $PWD 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
+    ZIP_ON && echo_verbose "Zip command: zip -r - ../$(basename $PWD)  > "$WORKING_DIR_PATH"/"${file_name}".zip" 3
+
+# zip to stdout first and then pipe to a file. this way we overwrite the target instead of updating it ( default )
+# not zip using $PWD/* since it will include the parent path.
+
+ ZIP_ON && (zip -qr - ../$(basename $PWD)  > "$WORKING_DIR_PATH"/"${file_name}".zip || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
+
 
     TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${REPO_DEST_PATH}) ${REPO_DEST_DIR_NAME}" 3
     TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${REPO_DEST_PATH}) "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
@@ -334,8 +338,6 @@ _git_clone() {
   local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
      VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
 
-     # delete the destination directory if we are doing  a compress, since its a temporary directory
-    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
 
 [[ -d "${REPO_DEST_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
@@ -403,13 +405,14 @@ get() {
 
 ######## MAIN ###########
 
+
 validate
 
 init
-show_verbose
+
 
 #die ("DIE! ${LINENO}")
 get
-show_verbose
 
+show_verbose
 #show_errors
