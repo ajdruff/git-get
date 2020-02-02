@@ -23,6 +23,45 @@ parser.sh is the output of [argbash](https://argbash.io) parser generation scrip
 5. Once you've modified parser.tpl manually, run ./build.sh a second time. This time your manual changes will be applied to the output.
 6. Copy the contents of `parser/help`  over the to print-help function in git-get-parser.sh
 
+        print_help()
+        {
+
+        cat <<EOF
+        git get - Downloads just the working directory of a git repo
+
+        Usage: git get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
+
+        Options:
+        -b BRANCH, --branch BRANCH     The branch you want to download. [default: master].
+        -z, --zip                      Download as zip [default: off].
+        -t, --tar                      Download as tar.gz [default: off].
+        -x, --export                   Uses the native git archive command so that the download respects export-ignore rules in .gitattributes. Can be used with either zip,tar, or uncompressed formats [default: off].
+        -k, --keep-repo                Keep the .git directory [default: off].
+        -d, --dry-run                  Uses system tmp directory for downloads so as to avoid cluttering the current directory. [default: off].
+        -V VERBOSE, --verbose VERBOSE  Set verbose output (can be specified multiple times to increase the effect) [default: 0].
+        -v, --version                  Prints version.
+        -h, --help                     Prints help.
+
+        Example: git get https://github.com/githubtraining/hellogitworld.git
+        EOF
+
+        }
+
+
+
+7. Replace the following function with :
+
+
+        handle_passed_args_count()
+        {
+                local _required_args_string="'repository'"
+                test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: You didn\'t include the proper arguments. (Expecting y: $_required_args_string), but got only ${_positionals_count}." 1
+                test "${_positionals_count}" -le 2 || _PRINT_HELP=yes die "FATAL ERROR: You included too many arguments.  (Expecting:  $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
+        }
+
+
+
+
 ## To install Argbash
 
 Take the following steps to install argbash as a Docker container.

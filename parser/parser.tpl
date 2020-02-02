@@ -6,9 +6,9 @@ exit 11 #)Created by argbash-init v2.8.1
 # ARG_OPTIONAL_SINGLE([branch],b,[The branch you want to download.],master)
 # ARG_OPTIONAL_BOOLEAN([zip],z,[Download as zip],off)
 # ARG_OPTIONAL_BOOLEAN([tar],t,[Download as tar.gz],off)
-# ARG_OPTIONAL_BOOLEAN([export],x,[When used in combination with -z or -t, abides by export-ignore rules in .gitattributes.],off)
+# ARG_OPTIONAL_BOOLEAN([export],x,[Uses the native git archive command so that the download respects export-ignore rules in .gitattributes. Can be used with either zip,tar, or uncompressed formats],off)
 # ARG_OPTIONAL_BOOLEAN([keep-repo],k,[Keep the .git directory],off)
-# ARG_OPTIONAL_BOOLEAN([dry-run],d,[Uses system tmp directory for downloads so doesnt clutter current directory. Ignored when used with -a],off)
+# ARG_OPTIONAL_BOOLEAN([dry-run],d,[Uses system tmp directory for downloads so as to avoid cluttering the current directory.],off)
 # ARG_POSITIONAL_SINGLE([repository],[The git repository path])
 # ARG_POSITIONAL_SINGLE([directory],[The local destination path for your downloaded files],null)
 # ARG_DEFAULTS_POS

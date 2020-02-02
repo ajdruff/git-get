@@ -293,7 +293,6 @@ validate() {
     # Here we add our own rules to ensure user is warned that their options may not make sense
     TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again' 1
 
-    (! TAR_ON && ! ZIP_ON) && EXPORT_ON && die "If you want to export, you need to specify the --zip,-z or --tar,-t option to provide the compression type. Please try again" 1
 
     return 0
 
