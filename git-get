@@ -24,6 +24,7 @@
 # See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
 
 #source ./git-get-parser.sh # uncomment when using SHELLCHECK
+_PRINT_HELP=yes # this is an argbash global var and required to be set here ( before parser source) to toggle help on error
 source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
 #####################
@@ -62,6 +63,9 @@ platform_check() {
 
     #make shellcheck  happy
     echo '' | "${xargs}" echo | "${grep}" 't'
+
+     return 0
+
 
 }
 
@@ -116,12 +120,14 @@ KEEP_REPO_ON() {
 echo_verbose() {
 
     (($2 <= "$_arg_verbose")) && echo "${1}"
+     return 0
 
 }
 
 getRepoSourcePath() {
 
     echo "${_arg_repository}"
+     return 0
 
 }
 
@@ -172,6 +178,8 @@ getRepoDestPath() {
 
     echo "${result}"
 
+     return 0
+
 }
 
 getCompressType() {
@@ -179,6 +187,8 @@ getCompressType() {
     ZIP_ON && echo 'zip'
     TAR_ON && echo 'tar'
     (! ZIP_ON && ! TAR_ON) && echo null
+
+     return 0
 
 }
 
@@ -208,6 +218,8 @@ init() {
     V_MSG+="REPO_DEST_PATH:${REPO_DEST_PATH} \n"
     V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
     V_MSG+="VERSION:${VERSION} \n"
+
+     return 0
 
 }
 
@@ -241,10 +253,13 @@ saferRmdir() {
 
     (test "$in_temp" = true || test "$in_working_directory" = true) && (test "$is_root"=false) && rm -rf "$dir_path"
 
+     return 0
+
 }
 
 show_errors() {
     echo -e "${E_MSG}"
+     return 0
 }
 
 show_verbose() {
@@ -268,21 +283,28 @@ show_verbose() {
     printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
 
     echo -e "${V_MSG}"
+     return 0
 
 }
 
 validate() {
+
     # initial validation is done by the argbash parser.
     # Here we add our own rules to ensure user is warned that their options may not make sense
-    TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again'
-    (! TAR_ON && ! ZIP_ON) && EXPORT_ON && die "If you want to export, you need to specify the --zip,-z or --tar,-t option to provide the compression type. Please try again"
+    TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again' 1
+
+    (! TAR_ON && ! ZIP_ON) && EXPORT_ON && die "If you want to export, you need to specify the --zip,-z or --tar,-t option to provide the compression type. Please try again" 1
+
+    return 0
 
 }
 
 _checkout() {
 
     echo_verbose "Checking out $BRANCH..." 2
-    ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting")
+    ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting" 1)
+
+  return 0
 
 }
 
@@ -298,17 +320,20 @@ _compress() {
     # zip to stdout first and then pipe to a file. this way we overwrite the target instead of updating it ( default )
     # not zip using $PWD/* since it will include the parent path.
 
-    ZIP_ON && (zip -qr - "../$(basename "$PWD")" >"$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting")
+    ZIP_ON && (zip -qr - "../$(basename "$PWD")" >"$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting" 1)
 
     TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname "$REPO_DEST_PATH") ${REPO_DEST_DIR_NAME}" 3
-    TAR_ON && (
-
-        tar -zcvf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting"
+    TAR_ON && (print
+        tar -zcvf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting " 1
 
     )
 
     # delete temporary directory
     (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
+
+
+      return 0
+
 
 }
 
@@ -318,11 +343,17 @@ _tar() {
     tar -xzvf latest.tar.gz
     rm latest.tar.gz
 
+
+      return 0
+
+
 }
 _export() {
 
     EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
     EXPORT_ON && (_tar || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting...")
+     return 0
+
 
 }
 
@@ -333,20 +364,24 @@ _git_clone() {
 
     [[ -d "${REPO_DEST_PATH}" ]] && die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
-    git clone -q --no-checkout --depth=1 --branch="$BRANCH" "$REPO_SOURCE_PATH" "$REPO_DEST_PATH" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+    git clone -q --no-checkout --depth=1 --branch="$BRANCH" "$REPO_SOURCE_PATH" "$REPO_DEST_PATH" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone" 1
 
+     return 0
 }
 
 _rm_git() {
 
     echo_verbose "Removing git directory" 2
 
-    [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
+    [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" 1 # this means you were about delete the .git of the main directory
 
     # remove .git directory unless we tell it not to with the -k option
     KEEP_REPO_ON && (echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1)
     KEEP_REPO_ON || find "$PWD" -maxdepth 1 -name ".git" -type d -exec rm -rf {} \; # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
-    KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting")
+    KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting" 1 )
+
+
+     return 0
 
 }
 
@@ -356,13 +391,18 @@ _show_download_message() {
     ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo ${REPO_SOURCE_PATH}..." 0)
     echo_verbose "Cloning repository..." 1
 
+     return 0
+
+
 }
 
 _update_submodules() {
 
     echo_verbose "Updating submodules..." 2
 
-    git submodule update -q --init --recursive || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting"
+    git submodule update -q --init --recursive || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting" 1
+
+     return 0
 
 }
 
@@ -372,7 +412,7 @@ get() {
 
     _git_clone
 
-    cd "${REPO_DEST_PATH}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${REPO_DEST_PATH}"
+    cd "${REPO_DEST_PATH}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${REPO_DEST_PATH}" 1
 
     _checkout
 
@@ -384,6 +424,8 @@ get() {
     _compress
 
     cd - 1>/dev/null || return
+
+     return 0
 
 }
 
