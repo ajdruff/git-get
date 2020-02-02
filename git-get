@@ -322,9 +322,9 @@ _compress() {
 
     ZIP_ON && (zip -qr - "../$(basename "$PWD")" >"$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting" 1)
 
-    TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname "$REPO_DEST_PATH") ${REPO_DEST_DIR_NAME}" 3
+    TAR_ON && echo_verbose "Tar Command: tar -zcf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname "$REPO_DEST_PATH") ${REPO_DEST_DIR_NAME}" 3
     TAR_ON && (print
-        tar -zcvf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting " 1
+        tar -zcf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting " 1
 
     )
 
@@ -340,7 +340,7 @@ _compress() {
 _tar() {
 
     git archive -o latest.tar.gz HEAD
-    tar -xzvf latest.tar.gz
+    tar -xzf latest.tar.gz
     rm latest.tar.gz
 
 
@@ -351,7 +351,7 @@ _tar() {
 _export() {
 
     EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
-    EXPORT_ON && (_tar || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting...")
+    EXPORT_ON && (_tar || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting..." 1)
      return 0
 
 
