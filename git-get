@@ -14,6 +14,13 @@
 # http://stackoverflow.com/a/18434831
 # Argbash
 # https://argbash.readthedocs.io/en/stable/index.html
+
+
+# Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
+# See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
+source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
+
+
 #####################
 
 # NOTE: on macOS, this requires GNU findutils,
@@ -21,6 +28,8 @@
 # https://brew.sh/
 # https://apple.stackexchange.com/a/69332
 
+
+platform_check(){
 case "${OSTYPE}" in
 darwin*)
     grep='ggrep'
@@ -36,11 +45,7 @@ linux-*)
     exit 1
     ;;
 esac
-
-
-# Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
-# See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
-source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
+}
 
 
 COMPRESS_ON() {
@@ -405,6 +410,7 @@ get() {
 
 ######## MAIN ###########
 
+platform_check
 
 validate
 
