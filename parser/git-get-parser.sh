@@ -53,20 +53,26 @@ _arg_verbose=0
 
 print_help()
 {
-	printf '%s\n' "Downloads just the working directory of a git repo"
-	printf 'Usage: %s [-b|--branch <arg>] [-z|--(no-)zip] [-t|--(no-)tar] [-x|--(no-)export] [-k|--(no-)keep-repo] [-d|--(no-)dry-run] [-V|--verbose] [-v|--version] [-h|--help] <repository> [<directory>]\n' "$0"
-	printf '\t%s\n' "<repository>: The git repository path"
-	printf '\t%s\n' "<directory>: The local destination path for your downloaded files (default: 'null')"
-	printf '\t%s\n' "-b, --branch: The branch you want to download. (default: 'master')"
-	printf '\t%s\n' "-z, --zip, --no-zip: Download as zip (off by default)"
-	printf '\t%s\n' "-t, --tar, --no-tar: Download as tar.gz (off by default)"
-	printf '\t%s\n' "-x, --export, --no-export: Uses the native git archive command so that the download respects export-ignore rules in .gitattributes. Can be used with either zip,tar, or uncompressed formats (off by default)"
-	printf '\t%s\n' "-k, --keep-repo, --no-keep-repo: Keep the .git directory (off by default)"
-	printf '\t%s\n' "-d, --dry-run, --no-dry-run: Uses system tmp directory for downloads so as to avoid cluttering the current directory. (off by default)"
-	printf '\t%s\n' "-V, --verbose: Set verbose output (can be specified multiple times to increase the effect)"
-	printf '\t%s\n' "-v, --version: Prints version"
-	printf '\t%s\n' "-h, --help: Prints help"
-	printf '\n%s\n' "git get is a git extension that downloads files from a git repo without downloading the .git directory itself"
+
+cat <<EOF
+git get - Downloads just the working directory of a git repo
+
+Usage: git get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
+
+Options:
+  -b BRANCH, --branch BRANCH     The branch you want to download. [default: master].
+  -z, --zip                      Download as zip [default: off].
+  -t, --tar                      Download as tar.gz [default: off].
+  -x, --export                   Uses the native git archive command so that the download respects export-ignore rules in .gitattributes. Can be used with either zip,tar, or uncompressed formats [default: off].
+  -k, --keep-repo                Keep the .git directory [default: off].
+  -d, --dry-run                  Uses system tmp directory for downloads so as to avoid cluttering the current directory. [default: off].
+  -V VERBOSE, --verbose VERBOSE  Set verbose output (can be specified multiple times to increase the effect) [default: 0].
+  -v, --version                  Prints version.
+  -h, --help                     Prints help.
+
+Example: git get https://github.com/githubtraining/hellogitworld.git
+EOF
+
 }
 
 
@@ -189,8 +195,8 @@ parse_commandline()
 handle_passed_args_count()
 {
 	local _required_args_string="'repository'"
-	test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require between 1 and 2 (namely: $_required_args_string), but got only ${_positionals_count}." 1
-	test "${_positionals_count}" -le 2 || _PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect between 1 and 2 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
+	test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: You didn't include the proper arguments. (Expecting: $_required_args_string)." 1
+	test "${_positionals_count}" -le 2 || _PRINT_HELP=yes die "FATAL ERROR: You included too many arguments.  (Expecting:  $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
 }
 
 
