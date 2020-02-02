@@ -18,6 +18,7 @@
 # https://argbash.readthedocs.io/en/stable/index.html
 
 ##### SHELLCHECK ###########
+# disable checking of parser script
  #shellcheck disable=SC1090
 
 
@@ -33,6 +34,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://brew.sh/
 # https://apple.stackexchange.com/a/69332
 
+#ref:https://sipb.mit.edu/doc/safe-shell/
+set -euf -o pipefail
 
 platform_check(){
 case "${OSTYPE}" in
@@ -128,9 +131,12 @@ getRepoDestDirName() {
 # default to working directory.
 # if compressed or dry run, use temporary directory
 
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} repo_path"}
+  #  : "${1? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0]} repo_path"}
+  #: "${2? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0] repo_path} "
+  #: "${1? ERROR Function: ${FUNCNAME[0]}() Usage:  ${FUNCNAME[0]} repo_path"}
 
-
+ # : ${1? ERROR Function: "${FUNCNAME[0]}"() Usage: "${FUNCNAME[0]} repo_path"}
+: "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} repo_path}"
 
     # first check if a directory name was included as a positional paramater, if so, use return it.
     if [  "${_arg_directory}" != null ]; then
@@ -164,18 +170,18 @@ echo "${result}"
 
 getRepoDestPath() {
 
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} dir_name"}
+: "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} dir_name}"
 
     local dir_name="${1}"
     local result="${WORKING_DIR_PATH}/${dir_name}"
-    local new_dirname=
 # we randomize the temp directory in case it doesnt get deleted which leads to failure on a later run
-local temp_repo_dir=$(mktemp -d "${TEMP_DIR_PATH}"/XXXXXXXXX)
+local temp_repo_dir=
+temp_repo_dir=$(mktemp -d "${TEMP_DIR_PATH}"/XXXXXXXXX)
 
 
     (DRY_RUN_ON || COMPRESS_ON) && result="${temp_repo_dir}"/"${dir_name}"
 
-    echo ${result}
+    echo "${result}"
 
 }
 
@@ -234,19 +240,25 @@ saferRmdir() {
     # check to see that what you are trying to delete is either in /tmp
     # OR in a subdirectory that matches the working directory that you started from
 
-    : ${1? ERROR Function: ${FUNCNAME[0]}() Usage: " ${FUNCNAME[0]} dir_path"}
+
+
+: "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} dir_path}"
+
     local dir_path="${1}"
     local in_temp=false
-    local in_working_dir=false
     local is_root=true
 
-    local can_delete=false
+local in_working_directory
 
-    [ $dir_path != "/" ] && is_root=false
+in_working_directory=false
 
-    case $dir_path/ in
+
+
+    [ "$dir_path" != "/" ] && is_root=false
+
+    case "$dir_path"/ in
     "${TEMP_DIR_PATH}"/*) in_temp=true ;;
-    *) int_temp=false ;;
+    *) "$int_temp"=false ;;
     esac
 
     case $dir_path/ in
@@ -254,7 +266,7 @@ saferRmdir() {
     *) in_working_directory=false ;;
     esac
 
-    (test $in_temp = true || test $in_working_directory = true) && (test is_root=false) && rm -rf $dir_path
+    (test "$in_temp" = true || test "$in_working_directory" = true) && (test "$is_root"=false) && rm -rf "$dir_path"
 
 }
 
@@ -267,7 +279,7 @@ show_errors() {
 show_verbose() {
 
 
-    if [ $_arg_verbose -le 2 ]; then
+    if [ "$_arg_verbose" -le 2 ]; then
         return
 
     fi
@@ -277,8 +289,8 @@ show_verbose() {
     printf "tar is " && (TAR_ON && echo "on") || echo "off"
     printf "keep_repo is " && (KEEP_REPO_ON && echo "on") || echo "off"
 
-    printf "export is " && (EXPORT_ON = on && echo "on") || echo "off"
-    printf "dry_run is " && (DRY_RUN_ON = on && echo "on") || echo "off"
+    printf "export is " && (EXPORT_ON && echo "on") || echo "off"
+    printf "dry_run is " && (DRY_RUN_ONn && echo "on") || echo "off"
     printf "verbose is " && (VERBOSE_ON && echo "on") || echo "off"
 
     printf "'%s' is %s\\n" 'version' "$_arg_version"
@@ -320,16 +332,26 @@ _compress() {
     COMPRESS_ON && echo_verbose "Compressing files..." 1
     COMPRESS_ON && echo_verbose "Compressing files  using ${COMPRESS_TYPE}" 2
 
-    ZIP_ON && echo_verbose "Zip command: zip -r - ../$(basename $PWD)  > "$WORKING_DIR_PATH"/"${file_name}".zip" 3
+
+
+   ZIP_ON &&  echo_verbose "Zip command: zip -r - ../$(basename "$PWD")  > $WORKING_DIR_PATH/${file_name}.zip" 3
 
 # zip to stdout first and then pipe to a file. this way we overwrite the target instead of updating it ( default )
 # not zip using $PWD/* since it will include the parent path.
 
- ZIP_ON && (zip -qr - ../$(basename $PWD)  > "$WORKING_DIR_PATH"/"${file_name}".zip || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to zip, exiting")
+ ZIP_ON && (zip -qr - "../$(basename "$PWD")"  > "$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting")
 
 
-    TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname ${REPO_DEST_PATH}) ${REPO_DEST_DIR_NAME}" 3
-    TAR_ON && (tar -zcvf "$WORKING_DIR_PATH"/"${file_name}".tar.gz -C $(dirname ${REPO_DEST_PATH}) "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting")
+    TAR_ON && echo_verbose "Tar Command: tar -zcvf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname "$REPO_DEST_PATH") ${REPO_DEST_DIR_NAME}" 3
+    TAR_ON && (
+
+        tar -zcvf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting"
+
+#zip -qr - "../$(basename "$PWD")"  > "$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting"
+
+
+
+        )
 
    # delete temporary directory
    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
@@ -337,11 +359,17 @@ _compress() {
 }
 
 
+_tar (){
 
+git archive -o latest.tar.gz HEAD;
+tar -xzvf latest.tar.gz;
+rm latest.tar.gz;
+
+}
 _export() {
 
     EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
-    EXPORT_ON && (git archive -o latest.tar.gz HEAD 1>/dev/null && tar -xzvf latest.tar.gz 1>/dev/null && rm latest.tar.gz 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting...")
+    EXPORT_ON && (_tar|| die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting...")
 
 }
 
@@ -355,7 +383,7 @@ _git_clone() {
 
 [[ -d "${REPO_DEST_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
-   git clone -q --no-checkout ${cmd_options} 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+   git clone -q --no-checkout "$cmd_options" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
 
 
 }
@@ -367,8 +395,8 @@ _rm_git() {
     [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" # this means you were about delete the .git of the main directory
 
     # remove .git directory unless we tell it not to with the -k option
-    KEEP_REPO_ON && echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1
-    KEEP_REPO_ON || find $PWD -maxdepth 1 -name ".git" -type d -exec rm -rf {} \; # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
+    KEEP_REPO_ON && (echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1)
+    KEEP_REPO_ON || find "$PWD" -maxdepth 1 -name ".git" -type d -exec rm -rf {} \; # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
     KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting")
 
 }
@@ -376,8 +404,8 @@ _rm_git() {
 
 _show_download_message() {
 
-    COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo "${REPO_SOURCE_PATH}"...." 0)
-    ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo "${REPO_SOURCE_PATH}"..." 0)
+    COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo ${REPO_SOURCE_PATH}...." 0)
+    ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo ${REPO_SOURCE_PATH}..." 0)
     echo_verbose "Cloning repository..." 1
 
 }
@@ -418,7 +446,10 @@ get() {
 }
 
 ######## MAIN ###########
-
+#file_name=myfile
+#WORKING_DIR_PATH=/this/is/a/path
+# echo_verbose "Zip command: zip -r - ../$(basename "$PWD")  > $WORKING_DIR_PATH/${file_name}.zip" 3
+# exit;
 platform_check
 
 validate
