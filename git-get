@@ -35,7 +35,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://apple.stackexchange.com/a/69332
 
 #ref:https://sipb.mit.edu/doc/safe-shell/
-#set -euf -o pipefail
+set -euf -o pipefail
 
 platform_check(){
 case "${OSTYPE}" in
