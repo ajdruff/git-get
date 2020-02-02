@@ -35,7 +35,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://apple.stackexchange.com/a/69332
 
 #ref:https://sipb.mit.edu/doc/safe-shell/
-set -euf -o pipefail
+#set -euf -o pipefail
 
 platform_check(){
 case "${OSTYPE}" in
@@ -83,7 +83,7 @@ TAR_ON() {
 
 EXPORT_ON() {
 
-    test "$_arg_export "= on
+    test "$_arg_export" = on
     return $?
 
 }
@@ -210,8 +210,7 @@ init() {
 
     # Note the difference between REPO_DEST_PATH and  WORKING_DIR_PATH.
     # WORKING_DIR_PATH, Working Directory, is where you started from, where you called the script from
-    # REPO_DEST_PATH, Destination directory, is where the repo will be downloaded.
-    # REPO_DEST_PATH, will be the in the systems tmp directory  during dry run and compress.
+    # REPO_DEST_PATH, Destination directory, is where the repo wil uring dry run and compress.
     # WORKING_DIR_PATH will get the uncompressed downloaded files and any compressed downloads
 
     readonly REPO_SOURCE_PATH="$(getRepoSourcePath)"
@@ -377,13 +376,17 @@ _export() {
 _git_clone() {
 
 
-  local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
-     VERBOSE_ON && echo_verbose "using clone command: git clone --no-checkout ${cmd_options}" 3
+ # local cmd_options='--depth=1 --branch='"${BRANCH}"' '"${REPO_SOURCE_PATH}"' '"${REPO_DEST_PATH}"
+
+  local cmd="git clone -q --no-checkout --depth=1 --branch=$BRANCH $REPO_SOURCE_PATH $REPO_DEST_PATH"
+     VERBOSE_ON && echo_verbose "$cmd" 3
 
 
 [[ -d "${REPO_DEST_PATH}"  ]] &&  die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
 
-   git clone -q --no-checkout "$cmd_options" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
+git clone -q --no-checkout --depth=1 --branch="$BRANCH" "$REPO_SOURCE_PATH" "$REPO_DEST_PATH" ||  die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone"
+
 
 
 }
@@ -439,7 +442,7 @@ get() {
     _rm_git
     _compress
 
-    cd - 1>/dev/null
+    cd - 1>/dev/null || return
 
 
 
@@ -453,11 +456,13 @@ get() {
 platform_check
 
 validate
-
 init
 
+show_verbose
 
-#die ("DIE! ${LINENO}")
+
+
+
 get
 
 show_verbose
