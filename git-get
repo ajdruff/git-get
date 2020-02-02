@@ -1,6 +1,7 @@
 #!/bin/bash
 
-
+#shellcheck disable=SC1090
+#shellcheck source=./git-get-parser.sh
 
 ######################################
 # git-get
@@ -19,11 +20,14 @@
 
 ##### SHELLCHECK ###########
 # disable checking of parser script
- #shellcheck disable=SC1090
+#shellcheck disable=SC1090
+#shellcheck source=./git-get-parser.sh
 
 
 # Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
 # See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
+
+#source ./git-get-parser.sh # uncomment when using shellcheck
 source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
 
@@ -35,7 +39,16 @@ source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 # https://apple.stackexchange.com/a/69332
 
 #ref:https://sipb.mit.edu/doc/safe-shell/
-set -euf -o pipefail
+#set -euf -o pipefail  # this makes script silently fail.
+set -uf -o pipefail
+
+
+err_report() {
+    echo "Error on line $1"
+}
+
+trap 'err_report $LINENO' ERR
+
 
 platform_check(){
 case "${OSTYPE}" in
@@ -54,7 +67,7 @@ linux-*)
     ;;
 esac
 
-#make shellcheck is happy
+#make shellcheck  happy
 echo ''| "${xargs}" echo | "${grep}" 't'
 
 }
@@ -200,7 +213,7 @@ init() {
     # intialization
     E_MSG=
     V_MSG=
-    VERSION="${_arg_version}"
+    VERSION=$(git get -v)
         readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
     readonly BRANCH="${_arg_branch}"
     readonly COMPRESS_TYPE="$(getCompressType)"
@@ -257,7 +270,7 @@ in_working_directory=false
 
     case "$dir_path"/ in
     "${TEMP_DIR_PATH}"/*) in_temp=true ;;
-    *) "$int_temp"=false ;;
+    *) "$in_temp"=false ;;
     esac
 
     case $dir_path/ in
@@ -292,7 +305,7 @@ show_verbose() {
     printf "dry_run is " && (DRY_RUN_ONn && echo "on") || echo "off"
     printf "verbose is " && (VERBOSE_ON && echo "on") || echo "off"
 
-    printf "'%s' is %s\\n" 'version' "$_arg_version"
+    printf "'%s' is %s\\n" 'version: ' "$VERSION"
     printf "Value of '%s': %s\\n" 'repository' "$_arg_repository"
     printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
 
@@ -449,21 +462,9 @@ get() {
 }
 
 ######## MAIN ###########
-#file_name=myfile
-#WORKING_DIR_PATH=/this/is/a/path
-# echo_verbose "Zip command: zip -r - ../$(basename "$PWD")  > $WORKING_DIR_PATH/${file_name}.zip" 3
-# exit;
 platform_check
-
 validate
 init
-
 show_verbose
-
-
-
-
 get
-
-show_verbose
 #show_errors
