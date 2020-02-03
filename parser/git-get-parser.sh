@@ -53,11 +53,11 @@ _arg_verbose=0
 
 print_help()
 {
+cat<<EOF
 
-cat <<EOF
 git get - Downloads just the working directory of a git repo
 
-Usage: git get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
+Usage: git-get [--branch BRANCH] [--zip] [--tar] [--export] [--keep-repo] [--dry-run] [--verbose]... [--version] [--help] <repository> [<directory>]
 
 Options:
   -b BRANCH, --branch BRANCH     The branch you want to download. [default: master].
@@ -70,9 +70,9 @@ Options:
   -v, --version                  Prints version.
   -h, --help                     Prints help.
 
-Example: git get https://github.com/githubtraining/hellogitworld.git
-EOF
+Example: git get  https://github.com/githubtraining/hellogitworld.git
 
+EOF
 }
 
 
@@ -195,8 +195,10 @@ parse_commandline()
 handle_passed_args_count()
 {
 	local _required_args_string="'repository'"
-	test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: You didn't include the proper arguments. (Expecting: $_required_args_string)." 1
-	test "${_positionals_count}" -le 2 || _PRINT_HELP=yes die "FATAL ERROR: You included too many arguments.  (Expecting:  $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
+	test "${_positionals_count}" -ge 1 || _PRINT_HELP=yes die "FATAL ERROR: Too few arguments.  (Expecting: $_required_args_string)." 1 
+
+	test "${_positionals_count}" -le 2 || _PRINT_HELP=yes die "FATAL ERROR: You included too many arguments.  (Expecting:  $_required_args_string), but got ${_positionals_count} (the last one was: ${_last_positional})." 1 
+
 }
 
 
