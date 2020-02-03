@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ######################################
 # git-get
@@ -23,28 +23,35 @@
 # Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
 # See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
 
-#source ./git-get-parser.sh # uncomment when using SHELLCHECK
-_PRINT_HELP=yes # this is an argbash global var and required to be set here ( before parser source) to toggle help on error
-source "$(dirname "${BASH_SOURCE[0]}")/git-get-parser.sh"
 
+_PRINT_HELP=yes # this is an argbash global var and required to be set here ( before parser source) to toggle help on error
+
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+
+#ref:https://sipb.mit.edu/doc/safe-shell/
+#set -euf -o pipefail  # TODO: fix set -e causes script to  silently fail
+set -uf -o pipefail
+trap 'err_report $LINENO' ERR
+
+
+#######_ADD_PARSER_HERE_##########This line is needed by build script. don't edit or remove
+
+#source ./parser/parser.sh # uncomment when using SHELLCHECK
+source "$SCRIPT_DIR/parser/parser.sh"
+
+err_report() {
+    echo "Error on line $1"
+}
+
+
+platform_check() {
 #####################
 
 # NOTE: on macOS, this requires GNU findutils,
 # installed using e.g. brew install findutils:
 # https://brew.sh/
 # https://apple.stackexchange.com/a/69332
-
-#ref:https://sipb.mit.edu/doc/safe-shell/
-#set -euf -o pipefail  # TODO: fix set -e causes script to  silently fail
-set -uf -o pipefail
-
-err_report() {
-    echo "Error on line $1"
-}
-
-trap 'err_report $LINENO' ERR
-
-platform_check() {
     case "${OSTYPE}" in
     darwin*)
         grep='ggrep'
