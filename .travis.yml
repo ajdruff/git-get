@@ -7,7 +7,6 @@ before_install:
   - printf '%s\n' '#!/bin/bash' 'docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
   - chmod a+x argbash-docker argbash-init-docker
   - sudo install argbash-docker argbash-init-docker /usr/bin/
-  - docker pull kcov/kcov
 language: bash
 os:
   - linux
@@ -17,6 +16,5 @@ script:
     - bash ./build.sh
     - git commit -am 'travis dist build [skip ci]' || true
     - git push || true
-    - kcov --coveralls-id=$TRAVIS_JOB_ID ./tests ./tests/test-git-get.sh
     - bash ./tests/test-git-get.sh
 depth: false
