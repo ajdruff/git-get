@@ -1,5 +1,6 @@
 services:
   - docker
+service_name: travis-pro
 before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
