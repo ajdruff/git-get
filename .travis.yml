@@ -13,4 +13,6 @@ os:
 dist: xenial
 script:
     - bash ./build.sh
+    - git commit -am 'post-push-build'
+    - git push
     - bash ./tests/test-git-get.sh

@@ -1,4 +1,4 @@
-/dist
+
 shellcheck*
 *.tar.gz
 *.zip

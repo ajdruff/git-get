@@ -21,15 +21,7 @@ get_latest_tag() {
 }
 
 
-build(){
 
-cd "${TEMP_REPO_DIR}"
-"$TEMP_REPO_DIR/build.sh"
-
-    cd -
-
-    return 0
-}
 clone() {
 
     local branch
@@ -72,7 +64,6 @@ install() {
 }
 
 clone;
-build;
 install;
 
 rm -rf "${TEMP_REPO_DIR}"/"${REPO_NAME}"
