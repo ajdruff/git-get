@@ -28,6 +28,7 @@ SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 #prepare the git-get script for distribution by in-lining the parser.
 #do this by splitting the development version of ./git-get in half ( a header and footer), and appending the peices together with
 # the parser in between
+mkdir -p "$SCRIPT_DIR"/dist/
 cp "$SCRIPT_DIR"/git-get "$SCRIPT_DIR"/dist/git-get-header
 cp "$SCRIPT_DIR"/git-get "$SCRIPT_DIR"/dist/git-get-footer
 
