@@ -10,9 +10,12 @@ before_install:
 language: bash
 os:
   - linux
-dist: xenial
+dist: bionic
 script:
     - bash ./build.sh
+    - git checkout -b master
     - git commit -am 'post-push-build'
     - git push
     - bash ./tests/test-git-get.sh
+git:
+  depth: false
