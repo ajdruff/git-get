@@ -23,10 +23,7 @@ cleanup() {
 
 }
 
-id=99
 
-eval "cleanup $id>/dev/null"
-exit
 
 oneTimeTearDown() {
     cleanup

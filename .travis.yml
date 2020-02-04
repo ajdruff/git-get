@@ -1,0 +1,6 @@
+language: bash
+os: linux
+  dist: xenial
+script:
+    - bash ./build.sh
+    - bash ./tests/test-git-get.sh
