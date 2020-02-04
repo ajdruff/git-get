@@ -3,7 +3,7 @@ services:
 before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
-  - printf '%s\n' '#!/bin/bash' 'docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
+  - printf '%s\n' '#!/bin/bash' 'docker run -it --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-docker
   - printf '%s\n' '#!/bin/bash' 'docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
   - chmod a+x argbash-docker argbash-init-docker
   - sudo install argbash-docker argbash-init-docker /usr/bin/
