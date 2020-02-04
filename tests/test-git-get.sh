@@ -16,9 +16,10 @@ cleanup() {
     [ -d "test_untar" ] && rm -rf test_untar
     [ -d "temp" ] && rm -rf temp
     [ -d "test" ] && rm -rf test
-    rm hellogitworld-master.tar.gz
 
-    rm hellogitworld-master.zip
+    [ -f "hellogitworld-master.tar.gz" ] && rm hellogitworld-master.tar.gz
+
+    [ -f "hellogitworld-master.zip" ] && rm hellogitworld-master.zip
 
 }
 
