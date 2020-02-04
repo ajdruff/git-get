@@ -4,4 +4,5 @@ shellcheck*
 *.zip
 testfile.sh
 parser/help
+parser/parser.sh
 parser.m4
