@@ -24,7 +24,7 @@ get_latest_tag() {
 build(){
 
 cd "${TEMP_REPO_DIR}"
-./build.sh;
+"$TEMP_REPO_DIR/build.sh"
 
     cd -
 
