@@ -20,6 +20,16 @@ get_latest_tag() {
     return 0
 }
 
+
+build(){
+
+cd "${TEMP_REPO_DIR}"
+./build.sh;
+
+    cd -
+
+    return 0
+}
 clone() {
 
     local branch
@@ -53,7 +63,7 @@ install() {
     else
 
         sudo install "$TEMP_REPO_DIR/git-get" "${install_dir}"/
-        sudo install "$TEMP_REPO_DIR/parser/parser.sh" "${install_dir}"/
+        sudo install "$TEMP_REPO_DIR/parser/parser-build.sh" "${install_dir}"/
 
     fi
 
