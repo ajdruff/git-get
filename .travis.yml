@@ -17,5 +17,6 @@ script:
     - git commit -am 'travis dist build [skip ci]' || true
     - git push || true
     - bash ./tests/test-git-get.sh
+after_success: "sbt coveralls"
 git:
   depth: false
