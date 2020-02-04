@@ -1,5 +1,10 @@
 #!/usr/bin/env  bash
 
+
+SCRIPT_DIR=
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+
 oneTimeSetup() {
 
     cleanup
@@ -118,4 +123,4 @@ test_untar_git_exists() {
     return 0
 }
 
-. ./shunit2
+. "${SCRIPT_DIR]/shunit2"
