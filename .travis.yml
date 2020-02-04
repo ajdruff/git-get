@@ -20,7 +20,7 @@ script:
     - bash ./build.sh
     - git commit -am 'travis dist build [skip ci]' || true
     - git push || true
-    - docker run kcov /usr/bin/git-get
+    - docker run kcov/kcov /usr/bin/git-get
     - bash ./tests/test-git-get.sh
 depth: false
 
