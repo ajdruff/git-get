@@ -13,8 +13,8 @@ os:
 dist: bionic
 script:
     - bash ./build.sh
-    - git checkout -b master
-    - git commit -am 'post-push-build [skip travis]'
+    - git checkout  master
+    - git commit -am 'post-push-build [skip ci]'
     - git push
     - bash ./tests/test-git-get.sh
 git:
