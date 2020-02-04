@@ -29,7 +29,7 @@ clone() {
 
     cd "${REPO_NAME}"
 
-    if [-z "${1}" ]; then
+    if [ -z "${1}" ]; then
         branch=$(get_latest_tag)
     else
         branch="${1}"
