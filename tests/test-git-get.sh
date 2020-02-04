@@ -1,9 +1,7 @@
 #!/usr/bin/env  bash
 
-
 SCRIPT_DIR=
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-
+="$(dirname "${BASH_SOURCE[0]}")"
 
 oneTimeSetup() {
 
@@ -27,8 +25,6 @@ cleanup() {
     [ -f "hellogitworld-master.zip" ] && rm hellogitworld-master.zip
 
 }
-
-
 
 oneTimeTearDown() {
     cleanup
@@ -123,4 +119,4 @@ test_untar_git_exists() {
     return 0
 }
 
-. "${SCRIPT_DIR]/shunit2"
+. "$SCRIPT_DIR"/shunit2
