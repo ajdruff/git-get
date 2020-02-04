@@ -2,8 +2,8 @@
 
 REPO_NAME=git-get
 TEMP_DIR="${TMPDIR:-/tmp}"
-TEMP_REPO_DIR=$(mktemp -d "${TEMP_DIR}"/$REPO_NAME.XXXXXXXXX)
-
+REPO_PARENT_DIR=$(mktemp -d "${TEMP_DIR}"/XXXXXXXXX)
+REPO_ROOT_PATH="$REPO_PARENT_DIR/$REPO_NAME"
 die() {
     echo "$*" 1>&2
     exit 1
@@ -26,10 +26,10 @@ clone() {
 
     local branch
 
-    cd "${TEMP_REPO_DIR}"
+    cd "${REPO_PARENT_DIR}"
     git clone --no-checkout https://github.com/ajdruff/${REPO_NAME}.git || die "git-get: something went wrong trying to download installation files. Check your connection and try again"
 
-    cd "${REPO_NAME}"
+    cd "${REPO_ROOT_PATH}"
 
     if [ -z "${1}" ]; then
         branch=$(get_latest_tag)
@@ -50,12 +50,13 @@ install() {
     echo 'installing git-get...'
     local install_dir=$(dirname $(which git))
 
-    if [ -d "$TEMP_REPO_DIR/dist" ]; then
-        sudo install "$TEMP_REPO_DIR/dist/git-get" "${install_dir}"/
+    if [ -d "$REPO_ROOT_PATH/dist" ]; then
+    echo 'installing production build..'
+        sudo install "$REPO_ROOT_PATH/dist/git-get" "${install_dir}"/
     else
-
-        sudo install "$TEMP_REPO_DIR/git-get" "${install_dir}"/
-        sudo install "$TEMP_REPO_DIR/parser/parser-build.sh" "${install_dir}"/
+echo 'installing development build...'
+        sudo install "$REPO_ROOT_PATH/git-get" "${install_dir}"/
+        sudo install "$REPO_ROOT_PATH/parser/parser-build.sh" "${install_dir}"/
 
     fi
 
@@ -66,6 +67,6 @@ install() {
 clone;
 install;
 
-rm -rf "${TEMP_REPO_DIR}"/"${REPO_NAME}"
+rm -rf "$REPO_ROOT_PATH"
 
 (git get -h && git get -v && echo 'git get installed!') || die "git-get installation failed"
