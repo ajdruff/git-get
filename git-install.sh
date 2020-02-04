@@ -71,8 +71,9 @@ install() {
 
 }
 
-clone
-install
+clone;
+build;
+install;
 
 rm -rf "${TEMP_REPO_DIR}"/"${REPO_NAME}"
 
