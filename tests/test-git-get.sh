@@ -35,6 +35,8 @@ test_install() {
 
     (curl -L https://raw.githubusercontent.com/ajdruff/git-get/master/git-install.sh master | bash) || return 1
     git get -v || return 1
+    docker run kcov/kcov /usr/bin/git-get
+
 }
 
 test_clone() {
