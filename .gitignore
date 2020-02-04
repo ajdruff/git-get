@@ -1,0 +1,7 @@
+/dist
+shellcheck*
+*.tar.gz
+*.zip
+testfile.sh
+parser/help
+parser.m4
