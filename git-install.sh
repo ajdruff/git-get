@@ -17,7 +17,7 @@ get_latest_tag() {
     local latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
 
     echo "$latest_tag"
-return 0
+    return 0
 }
 
 clone() {
