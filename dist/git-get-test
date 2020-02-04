@@ -1,0 +1,444 @@
+#!/bin/bash
+
+######################################
+# git-get
+#
+# https://github.com/ajdruff/git-get
+#
+# @author Andrew Druffner andrew@nomstock.com
+######################################
+
+#####################
+# Credits / libraries used
+# Determine platform
+# http://stackoverflow.com/a/18434831
+# Argbash
+# https://argbash.readthedocs.io/en/stable/index.html
+
+##### SHELLCHECK ###########
+# disable checking of parser script
+#shellcheck disable=SC1090
+
+##### ARGBASH ###########
+# Argbash Parser https://argbash.readthedocs.io/en/stable/index.html
+# See the README for git get implementation  https://github.com/ajdruff/git-get/blob/master/parser/README-ARGBASH.md
+
+
+_PRINT_HELP=yes # this is an argbash global var and required to be set here ( before parser source) to toggle help on error
+
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+
+#ref:https://sipb.mit.edu/doc/safe-shell/
+#set -euf -o pipefail  # TODO: fix set -e causes script to  silently fail
+set -uf -o pipefail
+trap 'err_report $LINENO' ERR
+
+
+#source ./parser/parser.sh # uncomment when using SHELLCHECK
+source "$SCRIPT_DIR/parser/parser.sh"
+
+#######_ADD_PARSER_HERE_##########This line is needed by build script. don't edit or remove
+
+err_report() {
+    echo "Error on line $1"
+}
+
+
+platform_check() {
+#####################
+
+# NOTE: on macOS, this requires GNU findutils,
+# installed using e.g. brew install findutils:
+# https://brew.sh/
+# https://apple.stackexchange.com/a/69332
+    case "${OSTYPE}" in
+    darwin*)
+        grep='ggrep'
+        xargs='gxargs'
+        ;;
+    linux-*)
+        grep='grep'
+        xargs='xargs'
+        ;;
+    *)
+        echo 'ERROR'
+        echo "unsupported operating system: ${OSTYPE}"
+        exit 1
+        ;;
+    esac
+
+    #make shellcheck  happy
+    echo '' | "${xargs}" echo | "${grep}" 't'
+
+     return 0
+
+
+}
+
+COMPRESS_ON() {
+
+    test "$_arg_zip" = on || test "$_arg_tar" = on
+    return $?
+
+}
+
+ZIP_ON() {
+
+    test "$_arg_zip" = on
+    return $?
+
+}
+
+TAR_ON() {
+
+    test "$_arg_tar" = on
+    return $?
+
+}
+
+EXPORT_ON() {
+
+    test "$_arg_export" = on
+    return $?
+
+}
+
+DRY_RUN_ON() {
+
+    test "$_arg_dry_run" = on
+    return $?
+
+}
+
+VERBOSE_ON() {
+    test "$_arg_verbose" -gt 0
+    return $?
+
+}
+
+KEEP_REPO_ON() {
+
+    test "$_arg_keep_repo" = on
+    return $?
+
+}
+
+echo_verbose() {
+
+    (($2 <= "$_arg_verbose")) && echo "${1}"
+     return 0
+
+}
+
+getRepoSourcePath() {
+
+    echo "${_arg_repository}"
+     return 0
+
+}
+
+getRepoDestDirName() {
+
+    : "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} repo_path}"
+
+    # first check if a directory name was included as a positional paramater, if so, use return it.
+    if [ "${_arg_directory}" != null ]; then
+        result="${_arg_directory}"
+
+        echo "${result}"
+
+        return 0
+    fi
+
+    #if not explicitly set, derive it from the repo path
+    local repo_path="${1}"
+    local result
+    local re="([^/]+)\.git"
+    local re_no_extension="([^/]+)$"
+    if [[ $repo_path =~ $re ]]; then
+        result=${BASH_REMATCH[1]}
+
+    elif [[ $repo_path =~ $re_no_extension ]]; then
+        result=${BASH_REMATCH[1]}
+    else
+        E_MSG+="invalid path $repo_path \n"
+        end
+    fi
+    V_MSG+="REPO_DEST_DIR_NAME:${result} \n"
+
+    echo "${result}"
+    return 0
+}
+
+getRepoDestPath() {
+
+    : "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} dir_name}"
+
+    local dir_name="${1}"
+    local result="${WORKING_DIR_PATH}/${dir_name}"
+    # we randomize the temp directory in case it doesnt get deleted which leads to failure on a later run
+    local temp_repo_dir=
+    temp_repo_dir=$(mktemp -d "${TEMP_DIR_PATH}"/XXXXXXXXX)
+
+    (DRY_RUN_ON || COMPRESS_ON) && result="${temp_repo_dir}"/"${dir_name}"
+
+    echo "${result}"
+
+     return 0
+
+}
+
+getCompressType() {
+
+    ZIP_ON && echo 'zip'
+    TAR_ON && echo 'tar'
+    (! ZIP_ON && ! TAR_ON) && echo null
+
+     return 0
+
+}
+
+init() {
+    # intialization
+    E_MSG=
+    V_MSG=
+    VERSION=$(git get -v)
+    readonly TEMP_DIR_PATH="${TMPDIR:-/tmp}"
+    readonly BRANCH="${_arg_branch}"
+    readonly COMPRESS_TYPE="$(getCompressType)"
+    readonly WORKING_DIR_PATH=$(pwd)
+
+    # Note the difference between REPO_DEST_PATH and  WORKING_DIR_PATH.
+    # WORKING_DIR_PATH, Working Directory, is where you started from, where you called the script from
+    # REPO_DEST_PATH, Destination directory, is where the repo wil uring dry run and compress.
+    # WORKING_DIR_PATH will get the uncompressed downloaded files and any compressed downloads
+
+    readonly REPO_SOURCE_PATH="$(getRepoSourcePath)"
+    readonly REPO_DEST_DIR_NAME=$(getRepoDestDirName "${REPO_SOURCE_PATH}")
+    readonly REPO_DEST_PATH=$(getRepoDestPath "${REPO_DEST_DIR_NAME}")
+
+    V_MSG+="BRANCH:${BRANCH} \n"
+    V_MSG+="COMPRESS_TYPE:${COMPRESS_TYPE} \n"
+    V_MSG+="REPO_SOURCE_PATH:${REPO_SOURCE_PATH} \n"
+    V_MSG+="REPO_DEST_DIR_NAME:${REPO_DEST_DIR_NAME} \n"
+    V_MSG+="REPO_DEST_PATH:${REPO_DEST_PATH} \n"
+    V_MSG+="WORKING_DIR_PATH:${WORKING_DIR_PATH} \n"
+    V_MSG+="VERSION:${VERSION} \n"
+
+     return 0
+
+}
+
+saferRmdir() {
+
+    # check to see that you are not trying to delete root
+    # check to see that what you are trying to delete is either in /tmp
+    # OR in a subdirectory that matches the working directory that you started from
+
+    : "${1? ERROR Function: ${FUNCNAME[0]}() Usage: ${FUNCNAME[0]} dir_path}"
+
+    local dir_path="${1}"
+    local in_temp=false
+    local is_root=true
+
+    local in_working_directory
+
+    in_working_directory=false
+
+    [ "$dir_path" != "/" ] && is_root=false
+
+    case "$dir_path"/ in
+    "${TEMP_DIR_PATH}"/*) in_temp=true ;;
+    *) "$in_temp"=false ;;
+    esac
+
+    case $dir_path/ in
+    "${WORKING_DIR_PATH}"/*) in_working_directory=true ;;
+    *) in_working_directory=false ;;
+    esac
+
+    (test "$in_temp" = true || test "$in_working_directory" = true) && (test "$is_root"=false) && rm -rf "$dir_path"
+
+     return 0
+
+}
+
+show_errors() {
+    echo -e "${E_MSG}"
+     return 0
+}
+
+show_verbose() {
+
+    if [ "$_arg_verbose" -le 2 ]; then
+        return
+
+    fi
+
+    printf "compression  is " && (COMPRESS_ON && echo "on") || echo "off"
+    printf "zip is " && (ZIP_ON && echo "on") || echo "off" #alternate
+    printf "tar is " && (TAR_ON && echo "on") || echo "off"
+    printf "keep_repo is " && (KEEP_REPO_ON && echo "on") || echo "off"
+
+    printf "export is " && (EXPORT_ON && echo "on") || echo "off"
+    printf "dry_run is " && (DRY_RUN_ONn && echo "on") || echo "off"
+    printf "verbose is " && (VERBOSE_ON && echo "on") || echo "off"
+
+    printf "'%s' is %s\\n" 'version: ' "$VERSION"
+    printf "Value of '%s': %s\\n" 'repository' "$_arg_repository"
+    printf "Value of '%s': %s\\n" 'directory' "$_arg_directory"
+
+    echo -e "${V_MSG}"
+     return 0
+
+}
+
+validate() {
+
+    # initial validation is done by the argbash parser.
+    # Here we add our own rules to ensure user is warned that their options may not make sense
+    TAR_ON && ZIP_ON && die 'You specified both tar and zip, please specify only one and try again' 1
+
+
+    return 0
+
+}
+
+_checkout() {
+
+    echo_verbose "Checking out $BRANCH..." 2
+    ! EXPORT_ON && (git checkout -q "${BRANCH}" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to check out branch ${BRANCH}, exiting" 1)
+
+  return 0
+
+}
+
+_compress() {
+
+    local file_name="${REPO_DEST_DIR_NAME}"-"${BRANCH}"
+
+    COMPRESS_ON && echo_verbose "Compressing files..." 1
+    COMPRESS_ON && echo_verbose "Compressing files  using ${COMPRESS_TYPE}" 2
+
+    ZIP_ON && echo_verbose "Zip command: zip -r - ../$(basename "$PWD")  > $WORKING_DIR_PATH/${file_name}.zip" 3
+
+    # zip to stdout first and then pipe to a file. this way we overwrite the target instead of updating it ( default )
+    # not zip using $PWD/* since it will include the parent path.
+
+    ZIP_ON && (zip -qr - "../$(basename "$PWD")" >"$WORKING_DIR_PATH/${file_name}.zip" || die "ERROR: line ${LINENO} , ${FUNCNAME[0]}() Failed to zip, exiting" 1)
+
+    TAR_ON && echo_verbose "Tar Command: tar -zcf $WORKING_DIR_PATH/${file_name}.tar.gz -C $(dirname "$REPO_DEST_PATH") ${REPO_DEST_DIR_NAME}" 3
+    TAR_ON && (print
+        tar -zcf "$WORKING_DIR_PATH/${file_name}.tar.gz" -C "$(dirname "$REPO_DEST_PATH")" "${REPO_DEST_DIR_NAME}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to tar, exiting " 1
+
+    )
+
+    # delete temporary directory
+    (COMPRESS_ON || DRY_RUN_ON) && echo_verbose "Deleting temporary files..." 3 && saferRmdir "${REPO_DEST_PATH}"
+
+
+      return 0
+
+
+}
+
+_tar() {
+
+    git archive -o latest.tar.gz HEAD
+    tar -xzf latest.tar.gz
+    rm latest.tar.gz
+
+
+      return 0
+
+
+}
+_export() {
+
+    EXPORT_ON && echo_verbose "-x:Using git archive command to export..." 1
+    EXPORT_ON && (_tar || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() export failed, exiting..." 1)
+     return 0
+
+
+}
+
+_git_clone() {
+
+    local cmd="git clone -q --no-checkout --depth=1 --branch=$BRANCH $REPO_SOURCE_PATH $REPO_DEST_PATH"
+    VERBOSE_ON && echo_verbose "$cmd" 3
+
+    [[ -d "${REPO_DEST_PATH}" ]] && die "git get: Try again with a different destination directory, since the one you specified already exists, ${REPO_DEST_PATH}"
+
+    git clone -q --no-checkout --depth=1 --branch="$BRANCH" "$REPO_SOURCE_PATH" "$REPO_DEST_PATH" || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed git clone" 1
+
+     return 0
+}
+
+_rm_git() {
+
+    echo_verbose "Removing git directory" 2
+
+    [ "$WORKING_DIR_PATH" != "$(pwd)" ] || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}()  Refusing to delete wrong .git directory, exiting" 1 # this means you were about delete the .git of the main directory
+
+    # remove .git directory unless we tell it not to with the -k option
+    KEEP_REPO_ON && (echo_verbose "-k: Keeping .git repository files ..." 1 || echo_verbose "-k:removing .git repository files.." 1)
+    KEEP_REPO_ON || find "$PWD" -maxdepth 1 -name ".git" -type d -exec rm -rf {} \; # this will always return a $?=1 because of recursion, unless maxdepth=1 is used.
+    KEEP_REPO_ON || ([ -d .git ] && die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to remove .git, exiting" 1 )
+
+
+     return 0
+
+}
+
+_show_download_message() {
+
+    COMPRESS_ON && (echo_verbose "downloading $COMPRESS_TYPE of branch ${BRANCH} from repo ${REPO_SOURCE_PATH}...." 0)
+    ! COMPRESS_ON && (echo_verbose "downloading  branch ${BRANCH} from repo ${REPO_SOURCE_PATH}..." 0)
+    echo_verbose "Cloning repository..." 1
+
+     return 0
+
+
+}
+
+_update_submodules() {
+
+    echo_verbose "Updating submodules..." 2
+
+    git submodule update -q --init --recursive || die "ERROR: ${FUNCNAME[0]}() Failed to update git submodules, exiting" 1
+
+     return 0
+
+}
+
+get() {
+
+    _show_download_message
+
+    _git_clone
+
+    cd "${REPO_DEST_PATH}" 1>/dev/null || die "ERROR: line ${LINENO} ,${FUNCNAME[0]}() Failed to change directory to ${REPO_DEST_PATH}" 1
+
+    _checkout
+
+    _export
+
+    _update_submodules
+
+    _rm_git
+    _compress
+
+    cd - 1>/dev/null || return
+
+     return 0
+
+}
+
+######## MAIN ###########
+platform_check
+validate
+init
+show_verbose
+get
+#show_errors
