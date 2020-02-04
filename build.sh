@@ -23,7 +23,7 @@ SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
 #build the parser
 #this creates the parser/parser.sh script
-"$SCRIPT_DIR"/parser/parser-build.sh "git-get"
+"$SCRIPT_DIR"/parser/parser.sh "git-get"
 
 #prepare the git-get script for distribution by in-lining the parser.
 #do this by splitting the development version of ./git-get in half ( a header and footer), and appending the peices together with
