@@ -14,7 +14,7 @@ dist: bionic
 script:
     - bash ./build.sh
     - git checkout -b master
-    - git commit -am 'post-push-build'
+    - git commit -am 'post-push-build [skip travis]'
     - git push
     - bash ./tests/test-git-get.sh
 git:
