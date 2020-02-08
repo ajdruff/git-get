@@ -6,8 +6,8 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
   - sudo apt-get install curl
-  - printf '%s\n' '#!/bin/bash' 'docker run -it --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-docker
-  - printf '%s\n' '#!/bin/bash' 'docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
+  - printf '%s\n' '#!/bin/bash' 'sudo docker run -it --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-docker
+  - printf '%s\n' '#!/bin/bash' 'sudo docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
   - chmod a+x argbash-docker argbash-init-docker
   - sudo install argbash-docker argbash-init-docker /usr/bin/
 
@@ -16,15 +16,14 @@ env:
     - CODECOV_TOKEN=:"775d989b-44a4-40df-8cc6-b699f432f88a"
 
 
-os:
-  - linux
+os: linux
 dist: bionic
 script:
     - git checkout  master
     - bash ./build.sh
     - git commit -am 'travis dist build [skip ci]' || true
     - git push origin master || true
-    - docker run --security-opt seccomp=unconfined -v $(pwd):/source ragnaroek/kcov:v33 /source/ /source/tests/test-git-get.sh
+    - sudo docker run --security-opt seccomp=unconfined --mount type=bind,source="$(pwd)",target=/source  /source/kcov  /source/tests/test-git-get.sh
     - bash ./tests/test-git-get.sh
 depth: false
 
