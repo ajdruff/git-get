@@ -7,7 +7,10 @@ before_install:
   - sudo apt-get install make autoconf dash
   - sudo apt-get install curl
   - git clone https://github.com/matejak/argbash.git
-  - argbash/resources/make install
+  - cd argbash/resources
+  - make install
+  - cd -
+  - rm -rf argbash
 
 env:
   global:
