@@ -6,11 +6,6 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
   - sudo apt-get install curl
-  - git clone https://github.com/matejak/argbash.git
-  - cd argbash/resources
-  - make install
-  - cd -
-  - rm -rf argbash
 
 env:
   global:
@@ -20,10 +15,6 @@ env:
 os: linux
 dist: bionic
 script:
-    - git checkout  master
-    - bash ./build.sh
-    - git commit -am 'travis dist build [skip ci]' || true
-    - git push origin master || true
     - sudo docker run --security-opt seccomp=unconfined --mount type=bind,source="$(pwd)",target=/source  /source/kcov  /source/tests/test-git-get.sh
     - bash ./tests/test-git-get.sh
 depth: false
