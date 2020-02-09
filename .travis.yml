@@ -22,7 +22,7 @@ env:
 os: linux
 dist: bionic
 script:
-    - kcov ./kcov tests/test-git-get.sh
+    - kcov $(pwd)/kcov tests/test-git-get.sh
 depth: false
 
 after_success:
