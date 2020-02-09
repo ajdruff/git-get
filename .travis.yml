@@ -1,11 +1,18 @@
 language: bash
 
-services:
-  - docker
 before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
   - sudo apt-get install curl
+  - sudo apt-get install binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev
+  - git clone https://github.com/SimonKagstrom/kcov.git
+  - cd kcov
+  - cmake .
+  - make
+  - sudo make install
+  - cd -
+  - rm -rf kcov
+  - mkdir kcov
 
 env:
   global:
@@ -15,8 +22,7 @@ env:
 os: linux
 dist: bionic
 script:
-    - sudo docker run --security-opt seccomp=unconfined --mount type=bind,source="$(pwd)",target=/source  /source/kcov  /source/tests/test-git-get.sh
-    - bash ./tests/test-git-get.sh
+    - kcov ./kcov tests/test-git-get.sh
 depth: false
 
 after_success:
