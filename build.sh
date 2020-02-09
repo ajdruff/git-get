@@ -52,6 +52,10 @@ echo -e "$header" > "$SCRIPT_DIR"/dist/git-get
 echo -e "$parser_script" >> "$SCRIPT_DIR"/dist/git-get
 echo -e "$footer" >> "$SCRIPT_DIR"/dist/git-get
 
+
+# remove source statement sinec we in-lining  it
+sed -ri 's/(.?.?source .*\/parser.*)//' dist/git-get
+
 rm  "$SCRIPT_DIR"/dist/git-get-header
 rm  "$SCRIPT_DIR"/dist/git-get-footer
 

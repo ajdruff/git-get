@@ -35,11 +35,12 @@ set -uf -o pipefail
 trap 'err_report $LINENO' ERR
 
 
+#######_ADD_PARSER_HERE_##########This line is needed by build script. don't edit or remove
 
 #source ./parser/parser.sh # uncomment when using SHELLCHECK
 source "$SCRIPT_DIR/parser/parser.sh"
 
-#######_ADD_PARSER_HERE_##########This line is needed by build script. don't edit or remove
+
 
 
 err_report() {
