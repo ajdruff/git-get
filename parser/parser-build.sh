@@ -18,7 +18,7 @@ build() {
 
 
 
-    sudo  argbash-init-docker \
+    sudo  argbash-init \
         --opt branch \
         --opt-bool zip \
         --opt-bool tar \
@@ -32,12 +32,12 @@ build() {
         "$SCRIPT_DIR/parser.m4"
 
 
-    sudo argbash-docker \
+    sudo argbash \
         "$SCRIPT_DIR/parser.tpl" \
         --strip user-content \
         -o "$SCRIPT_DIR/parser.sh"
 
-    sudo argbash-docker \
+    sudo argbash \
        "$SCRIPT_DIR/parser.sh" \
         --type docopt \
         --strip all \

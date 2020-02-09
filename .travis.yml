@@ -6,10 +6,9 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install make autoconf dash
   - sudo apt-get install curl
-  - printf '%s\n' '#!/bin/bash' 'sudo docker run -it --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-docker
-  - printf '%s\n' '#!/bin/bash' 'sudo docker run -it -e PROGRAM=argbash-init --rm -v "$(pwd):/work" matejak/argbash "$@"' > argbash-init-docker
-  - chmod a+x argbash-docker argbash-init-docker
-  - sudo install argbash-docker argbash-init-docker /usr/bin/
+  - git clone https://github.com/matejak/argbash.git
+  - cd argbash/resources
+  - make install
 
 env:
   global:
