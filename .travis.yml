@@ -18,6 +18,8 @@ os: linux
 dist: bionic
 script:
     - kcov $(pwd)/kcov tests/test-git-get.sh
+    - kcov --coveralls-id=$TRAVIS_JOB_ID $(pwd)/kcov tests/test-git-get.sh
+
     - tests/test-git-get.sh
 depth: false
 
