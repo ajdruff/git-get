@@ -1,4 +1,4 @@
-# git-get [![Build Status](https://travis-ci.com/ajdruff/git-get.svg?branch=master)](https://travis-ci.com/ajdruff/git-get)[![codecov](https://codecov.io/gh/ajdruff/git-get/branch/master/graph/badge.svg)](https://codecov.io/gh/ajdruff/git-get)[![Coverage Status](https://coveralls.io/repos/github/<github username>/<repo name>/badge.svg?branch=master)](https://coveralls.io/github/<github username>/<repo name>?branch=master)
+# git-get [![Build Status](https://travis-ci.com/ajdruff/git-get.svg?branch=master)](https://travis-ci.com/ajdruff/git-get)[![codecov](https://codecov.io/gh/ajdruff/git-get/branch/master/graph/badge.svg)](https://codecov.io/gh/ajdruff/git-get)[![Coverage Status](https://coveralls.io/repos/github/ajdruff/git-get/badge.svg?branch=master)](https://coveralls.io/github/ajdruff/git-get?branch=master)
 
 `git-get` is a git extension that makes it a little easier to download files stored in a remote git repository. Use it when you just want the repo's files and won't be making changes to the code, or will be commiting it to a different repo and dont need to retain the repo's history.
 
